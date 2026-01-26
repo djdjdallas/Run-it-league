@@ -12,6 +12,11 @@ import {
   Megaphone,
   LogOut,
   ChevronLeft,
+  UserPlus,
+  Handshake,
+  Image,
+  Video,
+  CalendarDays,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -20,6 +25,8 @@ const sidebarLinks = [
   { href: "/admin/teams", label: "Teams", icon: Users },
   { href: "/admin/players", label: "Players", icon: UserCircle },
   { href: "/admin/games", label: "Games", icon: Calendar },
+  { href: "/admin/registrations", label: "Registrations", icon: UserPlus },
+  { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },
   { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
 ]
 

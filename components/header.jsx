@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button"
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/teams", label: "Teams" },
-  { href: "/players", label: "Players" },
   { href: "/schedule", label: "Schedule" },
   { href: "/stats", label: "Stats" },
+  { href: "/live", label: "Live" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/events", label: "Events" },
 ]
 
 export function Header() {
@@ -52,11 +54,18 @@ export function Header() {
 
         <div className="flex-1" />
 
-        <Link href="/admin" className="hidden md:block">
-          <Button variant="outline" size="sm">
-            Admin
-          </Button>
-        </Link>
+        <div className="hidden md:flex items-center gap-2">
+          <Link href="/register">
+            <Button size="sm">
+              Register
+            </Button>
+          </Link>
+          <Link href="/admin">
+            <Button variant="outline" size="sm">
+              Admin
+            </Button>
+          </Link>
+        </div>
 
         {/* Mobile Menu Button */}
         <Button

@@ -232,6 +232,218 @@ create policy "Admin delete for announcements"
   to authenticated
   using (true);
 
+-- =====================================================
+-- NEW FEATURES: Registration, Payments, Gallery, etc.
+-- =====================================================
+
+-- Photo Gallery table
+create table if not exists gallery_photos (
+  id uuid primary key default gen_random_uuid(),
+  title text,
+  description text,
+  image_url text not null,
+  category text default 'general', -- events, highlights, updates, general
+  game_id uuid references games(id) on delete set null,
+  is_featured boolean default false,
+  created_at timestamptz default now()
+);
+
+-- Live Streams table
+create table if not exists live_streams (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  stream_url text, -- YouTube, Twitch, or custom embed URL
+  stream_type text default 'youtube', -- youtube, twitch, vimeo, custom
+  game_id uuid references games(id) on delete set null,
+  is_live boolean default false,
+  scheduled_time timestamptz,
+  thumbnail_url text,
+  created_at timestamptz default now()
+);
+
+-- Sponsors table
+create table if not exists sponsors (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  logo_url text not null,
+  website_url text,
+  tier text default 'standard', -- premium, standard, basic
+  is_active boolean default true,
+  display_order integer default 0,
+  created_at timestamptz default now()
+);
+
+-- Player Registrations table
+create table if not exists registrations (
+  id uuid primary key default gen_random_uuid(),
+  first_name text not null,
+  last_name text not null,
+  email text not null,
+  phone text,
+  date_of_birth date,
+  position text, -- preferred position
+  experience_level text, -- beginner, intermediate, advanced
+  team_preference uuid references teams(id) on delete set null,
+  emergency_contact_name text,
+  emergency_contact_phone text,
+  medical_conditions text,
+  waiver_signed boolean default false,
+  status text default 'pending', -- pending, approved, rejected, waitlist
+  season_id uuid references seasons(id) on delete set null,
+  notes text,
+  created_at timestamptz default now()
+);
+
+-- Payments table
+create table if not exists payments (
+  id uuid primary key default gen_random_uuid(),
+  registration_id uuid references registrations(id) on delete set null,
+  player_id uuid references players(id) on delete set null,
+  amount decimal(10,2) not null,
+  currency text default 'usd',
+  payment_type text default 'registration', -- registration, membership, event, other
+  stripe_payment_intent_id text,
+  stripe_session_id text,
+  status text default 'pending', -- pending, completed, failed, refunded
+  description text,
+  metadata jsonb,
+  created_at timestamptz default now(),
+  completed_at timestamptz
+);
+
+-- Events table (for non-game events like tryouts, training sessions, etc.)
+create table if not exists events (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  event_type text default 'general', -- tryout, training, meeting, social, tournament
+  location text,
+  start_time timestamptz not null,
+  end_time timestamptz,
+  max_participants integer,
+  current_participants integer default 0,
+  registration_required boolean default false,
+  registration_fee decimal(10,2),
+  is_public boolean default true,
+  created_at timestamptz default now()
+);
+
+-- Event Registrations table
+create table if not exists event_registrations (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid references events(id) on delete cascade not null,
+  registration_id uuid references registrations(id) on delete set null,
+  player_id uuid references players(id) on delete set null,
+  name text,
+  email text,
+  phone text,
+  status text default 'registered', -- registered, attended, cancelled, no_show
+  payment_id uuid references payments(id) on delete set null,
+  created_at timestamptz default now(),
+  unique(event_id, email)
+);
+
+-- Create indexes for new tables
+create index if not exists idx_gallery_category on gallery_photos(category);
+create index if not exists idx_gallery_game on gallery_photos(game_id);
+create index if not exists idx_streams_game on live_streams(game_id);
+create index if not exists idx_streams_live on live_streams(is_live);
+create index if not exists idx_sponsors_active on sponsors(is_active);
+create index if not exists idx_registrations_email on registrations(email);
+create index if not exists idx_registrations_status on registrations(status);
+create index if not exists idx_payments_status on payments(status);
+create index if not exists idx_payments_registration on payments(registration_id);
+create index if not exists idx_events_start on events(start_time);
+create index if not exists idx_event_regs_event on event_registrations(event_id);
+
+-- Enable RLS on new tables
+alter table gallery_photos enable row level security;
+alter table live_streams enable row level security;
+alter table sponsors enable row level security;
+alter table registrations enable row level security;
+alter table payments enable row level security;
+alter table events enable row level security;
+alter table event_registrations enable row level security;
+
+-- Public read access for new tables
+create policy "Public read access for gallery_photos"
+  on gallery_photos for select
+  to anon, authenticated
+  using (true);
+
+create policy "Public read access for live_streams"
+  on live_streams for select
+  to anon, authenticated
+  using (true);
+
+create policy "Public read access for sponsors"
+  on sponsors for select
+  to anon, authenticated
+  using (is_active = true);
+
+create policy "Public read access for events"
+  on events for select
+  to anon, authenticated
+  using (is_public = true);
+
+-- Public can create registrations and event_registrations
+create policy "Public insert for registrations"
+  on registrations for insert
+  to anon, authenticated
+  with check (true);
+
+create policy "Public insert for event_registrations"
+  on event_registrations for insert
+  to anon, authenticated
+  with check (true);
+
+-- Admin access for new tables
+create policy "Admin full access for gallery_photos"
+  on gallery_photos for all
+  to authenticated
+  using (true);
+
+create policy "Admin full access for live_streams"
+  on live_streams for all
+  to authenticated
+  using (true);
+
+create policy "Admin full access for sponsors"
+  on sponsors for all
+  to authenticated
+  using (true);
+
+create policy "Admin read for registrations"
+  on registrations for select
+  to authenticated
+  using (true);
+
+create policy "Admin update for registrations"
+  on registrations for update
+  to authenticated
+  using (true);
+
+create policy "Admin delete for registrations"
+  on registrations for delete
+  to authenticated
+  using (true);
+
+create policy "Admin full access for payments"
+  on payments for all
+  to authenticated
+  using (true);
+
+create policy "Admin full access for events"
+  on events for all
+  to authenticated
+  using (true);
+
+create policy "Admin full access for event_registrations"
+  on event_registrations for all
+  to authenticated
+  using (true);
+
 -- Storage bucket for images (logos, photos, stat sheets)
 -- Run this separately in Supabase dashboard or via API:
 -- insert into storage.buckets (id, name, public) values ('images', 'images', true);
