@@ -1,31 +1,20 @@
-"use client"
-
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, UserCircle, Calendar, Megaphone, Trophy, TrendingUp } from "lucide-react"
-import { sampleTeams, samplePlayers, sampleGames, sampleAnnouncements } from "@/lib/sample-data"
+import { Users, UserCircle, Calendar, Megaphone, TrendingUp } from "lucide-react"
+import { getDashboardStats, getRecentGames, getUpcomingGames } from "@/lib/queries"
 
-export default function AdminDashboardPage() {
-  // In production, these would come from Supabase
-  const stats = {
-    teams: sampleTeams.length,
-    players: samplePlayers.filter((p) => p.is_active).length,
-    games: sampleGames.length,
-    completedGames: sampleGames.filter((g) => g.status === "final").length,
-    upcomingGames: sampleGames.filter((g) => g.status === "scheduled").length,
-    announcements: sampleAnnouncements.length,
-  }
+export const metadata = {
+  title: "Admin Dashboard - Run It League",
+  description: "Admin dashboard for the Run It League",
+}
 
-  const recentGames = sampleGames
-    .filter((g) => g.status === "final")
-    .sort((a, b) => new Date(b.game_date) - new Date(a.game_date))
-    .slice(0, 5)
-
-  const upcomingGames = sampleGames
-    .filter((g) => g.status === "scheduled")
-    .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))
-    .slice(0, 5)
+export default async function AdminDashboardPage() {
+  const [stats, recentGames, upcomingGames] = await Promise.all([
+    getDashboardStats(),
+    getRecentGames(5),
+    getUpcomingGames(5),
+  ])
 
   return (
     <div>

@@ -6,40 +6,43 @@ import { Button } from "@/components/ui/button"
 import { BoxScore } from "@/components/box-score"
 import { Footer } from "@/components/footer"
 import { ArrowLeft, MapPin, Calendar as CalendarIcon } from "lucide-react"
-import { sampleGames, sampleTeams, samplePlayers, samplePlayerStats } from "@/lib/sample-data"
+import { getGameById, getStatsByGame, getPlayersByTeam } from "@/lib/queries"
 import { formatDate, formatTime } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const game = sampleGames.find((g) => g.id === id)
+  const game = await getGameById(id)
   if (!game) return { title: "Game Not Found" }
 
-  const homeTeam = sampleTeams.find((t) => t.id === game.home_team_id)
-  const awayTeam = sampleTeams.find((t) => t.id === game.away_team_id)
-
   return {
-    title: `${awayTeam?.name || "Away"} vs ${homeTeam?.name || "Home"} - Run It League`,
+    title: `${game.away_team?.name || "Away"} vs ${game.home_team?.name || "Home"} - Run It League`,
     description: `Game details and box score`,
   }
 }
 
 export default async function GameDetailPage({ params }) {
   const { id } = await params
-  const game = sampleGames.find((g) => g.id === id)
+  const game = await getGameById(id)
 
   if (!game) {
     notFound()
   }
 
-  const homeTeam = sampleTeams.find((t) => t.id === game.home_team_id)
-  const awayTeam = sampleTeams.find((t) => t.id === game.away_team_id)
+  const homeTeam = game.home_team
+  const awayTeam = game.away_team
 
   const isFinal = game.status === "final"
   const homeWon = isFinal && game.home_score > game.away_score
   const awayWon = isFinal && game.away_score > game.home_score
 
-  // Get stats for this game
-  const gameStats = samplePlayerStats.filter((ps) => ps.game_id === id)
+  // Get stats and players for this game
+  const [gameStats, homePlayers, awayPlayers] = await Promise.all([
+    getStatsByGame(id),
+    getPlayersByTeam(game.home_team_id),
+    getPlayersByTeam(game.away_team_id),
+  ])
+
+  const allPlayers = [...homePlayers, ...awayPlayers]
   const homeStats = gameStats.filter((ps) => ps.team_id === game.home_team_id)
   const awayStats = gameStats.filter((ps) => ps.team_id === game.away_team_id)
 
@@ -174,7 +177,7 @@ export default async function GameDetailPage({ params }) {
                     <BoxScore
                       stats={awayStats}
                       team={awayTeam}
-                      players={samplePlayers}
+                      players={allPlayers}
                     />
                   </CardContent>
                 </Card>
@@ -187,7 +190,7 @@ export default async function GameDetailPage({ params }) {
                     <BoxScore
                       stats={homeStats}
                       team={homeTeam}
-                      players={samplePlayers}
+                      players={allPlayers}
                     />
                   </CardContent>
                 </Card>

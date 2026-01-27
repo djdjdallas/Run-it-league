@@ -3,29 +3,28 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
-import { sampleSponsors } from "@/lib/sample-data"
 
-export function SponsorBanner({ variant = "default", showTitle = true }) {
+export function SponsorBanner({ sponsors = [], variant = "default", showTitle = true }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const sponsors = sampleSponsors.filter((s) => s.is_active)
-  const premiumSponsors = sponsors.filter((s) => s.tier === "premium")
-  const standardSponsors = sponsors.filter((s) => s.tier !== "premium")
+  const activeSponsors = sponsors.filter((s) => s.is_active)
+  const premiumSponsors = activeSponsors.filter((s) => s.tier === "premium")
+  const standardSponsors = activeSponsors.filter((s) => s.tier !== "premium")
 
   // Rotate sponsors every 5 seconds
   useEffect(() => {
-    if (variant === "rotating" && sponsors.length > 1) {
+    if (variant === "rotating" && activeSponsors.length > 1) {
       const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % sponsors.length)
+        setCurrentIndex((prev) => (prev + 1) % activeSponsors.length)
       }, 5000)
       return () => clearInterval(interval)
     }
-  }, [variant, sponsors.length])
+  }, [variant, activeSponsors.length])
 
-  if (sponsors.length === 0) return null
+  if (activeSponsors.length === 0) return null
 
   // Rotating single sponsor
   if (variant === "rotating") {
-    const sponsor = sponsors[currentIndex]
+    const sponsor = activeSponsors[currentIndex]
     return (
       <div className="text-center">
         {showTitle && (
@@ -60,7 +59,7 @@ export function SponsorBanner({ variant = "default", showTitle = true }) {
         {showTitle && (
           <span className="text-xs text-muted-foreground">Our Sponsors:</span>
         )}
-        {sponsors.slice(0, 4).map((sponsor) => (
+        {activeSponsors.slice(0, 4).map((sponsor) => (
           <a
             key={sponsor.id}
             href={sponsor.website_url}
@@ -154,10 +153,10 @@ export function SponsorBanner({ variant = "default", showTitle = true }) {
 }
 
 // Sidebar sponsor widget
-export function SponsorSidebar() {
-  const sponsors = sampleSponsors.filter((s) => s.is_active)
+export function SponsorSidebar({ sponsors = [] }) {
+  const activeSponsors = sponsors.filter((s) => s.is_active)
 
-  if (sponsors.length === 0) return null
+  if (activeSponsors.length === 0) return null
 
   return (
     <Card>
@@ -166,7 +165,7 @@ export function SponsorSidebar() {
           Supported By
         </p>
         <div className="space-y-4">
-          {sponsors.map((sponsor) => (
+          {activeSponsors.map((sponsor) => (
             <a
               key={sponsor.id}
               href={sponsor.website_url}

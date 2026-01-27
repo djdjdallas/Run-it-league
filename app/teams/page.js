@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Footer } from "@/components/footer"
-import { sampleTeams } from "@/lib/sample-data"
+import { getTeams } from "@/lib/queries"
 import { calculateWinPercentage } from "@/lib/utils"
 
 export const metadata = {
@@ -10,9 +10,11 @@ export const metadata = {
   description: "View all teams in the Run It League",
 }
 
-export default function TeamsPage() {
+export default async function TeamsPage() {
+  const allTeams = await getTeams()
+
   // Sort teams by win percentage
-  const teams = [...sampleTeams].sort((a, b) => {
+  const teams = [...allTeams].sort((a, b) => {
     const pctA = calculateWinPercentage(a.wins, a.losses)
     const pctB = calculateWinPercentage(b.wins, b.losses)
     return pctB - pctA
@@ -91,6 +93,12 @@ export default function TeamsPage() {
               </Link>
             ))}
           </div>
+
+          {teams.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No teams found.</p>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

@@ -10,21 +10,23 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Footer } from "@/components/footer"
-import { samplePlayers, sampleTeams, samplePlayerStats, getStatLeaders } from "@/lib/sample-data"
+import { getStatLeaders } from "@/lib/queries"
 
 export const metadata = {
   title: "Stats Leaders - Run It League",
   description: "View statistical leaders in the Run It League",
 }
 
-export default function StatsPage() {
-  const pointsLeaders = getStatLeaders(samplePlayerStats, samplePlayers, "points", 10)
-  const reboundsLeaders = getStatLeaders(samplePlayerStats, samplePlayers, "rebounds", 10)
-  const assistsLeaders = getStatLeaders(samplePlayerStats, samplePlayers, "assists", 10)
-  const stealsLeaders = getStatLeaders(samplePlayerStats, samplePlayers, "steals", 10)
-  const blocksLeaders = getStatLeaders(samplePlayerStats, samplePlayers, "blocks", 10)
+export default async function StatsPage() {
+  const [pointsLeaders, reboundsLeaders, assistsLeaders, stealsLeaders, blocksLeaders] = await Promise.all([
+    getStatLeaders("points", 10),
+    getStatLeaders("rebounds", 10),
+    getStatLeaders("assists", 10),
+    getStatLeaders("steals", 10),
+    getStatLeaders("blocks", 10),
+  ])
 
-  const StatTable = ({ leaders, statName, avgKey }) => (
+  const StatTable = ({ leaders, statName }) => (
     <Table>
       <TableHeader>
         <TableRow>
@@ -37,7 +39,7 @@ export default function StatsPage() {
       </TableHeader>
       <TableBody>
         {leaders.map((leader, index) => {
-          const team = sampleTeams.find((t) => t.id === leader.player?.team_id)
+          const team = leader.player?.team
           return (
             <TableRow key={leader.player_id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
@@ -161,9 +163,7 @@ export default function StatsPage() {
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
                       style={{
-                        backgroundColor:
-                          sampleTeams.find((t) => t.id === pointsLeaders[0].player?.team_id)
-                            ?.primary_color || "#666",
+                        backgroundColor: pointsLeaders[0].player?.team?.primary_color || "#666",
                       }}
                     >
                       {pointsLeaders[0].player?.number || "?"}
@@ -196,9 +196,7 @@ export default function StatsPage() {
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
                       style={{
-                        backgroundColor:
-                          sampleTeams.find((t) => t.id === reboundsLeaders[0].player?.team_id)
-                            ?.primary_color || "#666",
+                        backgroundColor: reboundsLeaders[0].player?.team?.primary_color || "#666",
                       }}
                     >
                       {reboundsLeaders[0].player?.number || "?"}
@@ -231,9 +229,7 @@ export default function StatsPage() {
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
                       style={{
-                        backgroundColor:
-                          sampleTeams.find((t) => t.id === assistsLeaders[0].player?.team_id)
-                            ?.primary_color || "#666",
+                        backgroundColor: assistsLeaders[0].player?.team?.primary_color || "#666",
                       }}
                     >
                       {assistsLeaders[0].player?.number || "?"}

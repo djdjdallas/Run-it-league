@@ -13,12 +13,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
-import { samplePlayers, sampleTeams, sampleGames, samplePlayerStats } from "@/lib/sample-data"
+import { getPlayerById, getStatsByPlayer } from "@/lib/queries"
 import { formatDate, calculatePercentage } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const player = samplePlayers.find((p) => p.id === id)
+  const player = await getPlayerById(id)
   if (!player) return { title: "Player Not Found" }
   return {
     title: `${player.name} - Run It League`,
@@ -28,33 +28,35 @@ export async function generateMetadata({ params }) {
 
 export default async function PlayerDetailPage({ params }) {
   const { id } = await params
-  const player = samplePlayers.find((p) => p.id === id)
+  const [player, playerGameStats] = await Promise.all([
+    getPlayerById(id),
+    getStatsByPlayer(id),
+  ])
 
   if (!player) {
     notFound()
   }
 
-  const team = sampleTeams.find((t) => t.id === player.team_id)
-  const playerGameStats = samplePlayerStats.filter((ps) => ps.player_id === id)
+  const team = player.team
 
   // Calculate career averages
   const games = playerGameStats.length
   const totals = playerGameStats.reduce(
     (acc, stat) => ({
-      minutes: acc.minutes + stat.minutes,
-      points: acc.points + stat.points,
-      rebounds: acc.rebounds + stat.rebounds,
-      assists: acc.assists + stat.assists,
-      steals: acc.steals + stat.steals,
-      blocks: acc.blocks + stat.blocks,
-      turnovers: acc.turnovers + stat.turnovers,
-      fouls: acc.fouls + stat.fouls,
-      fgMade: acc.fgMade + stat.fg_made,
-      fgAttempted: acc.fgAttempted + stat.fg_attempted,
-      threeMade: acc.threeMade + stat.three_made,
-      threeAttempted: acc.threeAttempted + stat.three_attempted,
-      ftMade: acc.ftMade + stat.ft_made,
-      ftAttempted: acc.ftAttempted + stat.ft_attempted,
+      minutes: acc.minutes + (stat.minutes || 0),
+      points: acc.points + (stat.points || 0),
+      rebounds: acc.rebounds + (stat.rebounds || 0),
+      assists: acc.assists + (stat.assists || 0),
+      steals: acc.steals + (stat.steals || 0),
+      blocks: acc.blocks + (stat.blocks || 0),
+      turnovers: acc.turnovers + (stat.turnovers || 0),
+      fouls: acc.fouls + (stat.fouls || 0),
+      fgMade: acc.fgMade + (stat.fg_made || 0),
+      fgAttempted: acc.fgAttempted + (stat.fg_attempted || 0),
+      threeMade: acc.threeMade + (stat.three_made || 0),
+      threeAttempted: acc.threeAttempted + (stat.three_attempted || 0),
+      ftMade: acc.ftMade + (stat.ft_made || 0),
+      ftAttempted: acc.ftAttempted + (stat.ft_attempted || 0),
     }),
     {
       minutes: 0,
@@ -92,7 +94,7 @@ export default async function PlayerDetailPage({ params }) {
 
   // Get game logs with game details
   const gameLogs = playerGameStats.map((stat) => {
-    const game = sampleGames.find((g) => g.id === stat.game_id)
+    const game = stat.game
     const isHome = game?.home_team_id === player.team_id
     const opponent = isHome ? game?.away_team : game?.home_team
     const result = game

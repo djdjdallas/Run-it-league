@@ -14,12 +14,12 @@ import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/footer"
 import { GameCard } from "@/components/game-card"
 import { ArrowLeft } from "lucide-react"
-import { sampleTeams, samplePlayers, sampleGames, samplePlayerStats } from "@/lib/sample-data"
+import { getTeamById, getPlayersByTeam, getGamesByTeam, getStatsByTeam } from "@/lib/queries"
 import { calculateWinPercentage, calculatePercentage } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const team = sampleTeams.find((t) => t.id === id)
+  const team = await getTeamById(id)
   if (!team) return { title: "Team Not Found" }
   return {
     title: `${team.name} - Run It League`,
@@ -29,23 +29,20 @@ export async function generateMetadata({ params }) {
 
 export default async function TeamDetailPage({ params }) {
   const { id } = await params
-  const team = sampleTeams.find((t) => t.id === id)
+  const [team, roster, teamGames, teamStats] = await Promise.all([
+    getTeamById(id),
+    getPlayersByTeam(id),
+    getGamesByTeam(id),
+    getStatsByTeam(id),
+  ])
 
   if (!team) {
     notFound()
   }
 
-  // Get team roster
-  const roster = samplePlayers.filter((p) => p.team_id === id && p.is_active)
-
-  // Get team games
-  const teamGames = sampleGames
-    .filter((g) => g.home_team_id === id || g.away_team_id === id)
-    .sort((a, b) => new Date(b.game_date) - new Date(a.game_date))
-
   // Calculate player averages
   const playerAverages = roster.map((player) => {
-    const playerGameStats = samplePlayerStats.filter(
+    const playerGameStats = teamStats.filter(
       (ps) => ps.player_id === player.id
     )
     const games = playerGameStats.length
@@ -219,6 +216,13 @@ export default async function TeamDetailPage({ params }) {
                           </TableCell>
                         </TableRow>
                       ))}
+                      {playerAverages.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            No players on roster.
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>

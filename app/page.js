@@ -6,27 +6,17 @@ import { GameCard } from "@/components/game-card"
 import { AnnouncementCard } from "@/components/announcement-card"
 import { Footer } from "@/components/footer"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
-import { sampleTeams, sampleGames, sampleAnnouncements } from "@/lib/sample-data"
+import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements } from "@/lib/queries"
 
-export default function HomePage() {
-  // In production, these would come from Supabase
-  const teams = sampleTeams
-  const recentGames = sampleGames
-    .filter((g) => g.status === "final")
-    .sort((a, b) => new Date(b.game_date) - new Date(a.game_date))
-    .slice(0, 3)
-  const upcomingGames = sampleGames
-    .filter((g) => g.status === "scheduled")
-    .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))
-    .slice(0, 3)
-  const announcements = sampleAnnouncements
-    .sort((a, b) => {
-      // Pinned first, then by date
-      if (a.is_pinned && !b.is_pinned) return -1
-      if (!a.is_pinned && b.is_pinned) return 1
-      return new Date(b.created_at) - new Date(a.created_at)
-    })
-    .slice(0, 3)
+export default async function HomePage() {
+  const [teams, recentGames, upcomingGames, allAnnouncements] = await Promise.all([
+    getTeams(),
+    getRecentGames(3),
+    getUpcomingGames(3),
+    getAnnouncements(),
+  ])
+
+  const announcements = allAnnouncements.slice(0, 3)
 
   return (
     <div className="min-h-screen flex flex-col">
