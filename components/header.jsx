@@ -20,6 +20,7 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   // Don't show header on admin pages
   if (pathname.startsWith("/admin")) {
@@ -27,7 +28,20 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div
+      className="fixed top-0 left-0 right-0 z-50"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {/* Hover trigger zone - always present */}
+      <div className="h-4 w-full" />
+
+      <header
+        className={cn(
+          "w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ease-in-out",
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
+        )}
+      >
       <div className="container flex h-16 items-center">
         <Link href="/" className="flex items-center space-x-2 mr-6">
           <Trophy className="h-6 w-6" />
@@ -111,6 +125,7 @@ export function Header() {
           </nav>
         </div>
       )}
-    </header>
+      </header>
+    </div>
   )
 }
