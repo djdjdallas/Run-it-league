@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X, Trophy } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -44,7 +45,7 @@ export function Header() {
       >
       <div className="container flex h-16 items-center">
         <Link href="/" className="flex items-center space-x-2 mr-6">
-          <Trophy className="h-6 w-6" />
+          <Image src="/assets/Runit.png" alt="Run It League" width={40} height={40} className="h-10 w-10 object-contain" />
           <span className="font-bold text-xl">Run It League</span>
         </Link>
 
