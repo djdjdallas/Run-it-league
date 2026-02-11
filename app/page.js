@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StandingsTable } from "@/components/standings-table"
@@ -25,6 +26,14 @@ export default async function HomePage() {
         <section className="bg-gradient-to-br from-primary/10 via-background to-background py-12 md:py-20">
           <div className="container">
             <div className="text-center max-w-3xl mx-auto">
+              <Image
+                src="/assets/Runit.png"
+                alt="Run It League"
+                width={200}
+                height={200}
+                className="mx-auto mb-4"
+                priority
+              />
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
                 Run It League
               </h1>
