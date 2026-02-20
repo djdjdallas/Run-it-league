@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,9 +21,11 @@ import { Plus, Pencil, Trash2, Pin } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
 export default function AnnouncementsClient({ initialAnnouncements }) {
+  const router = useRouter()
   const [announcements, setAnnouncements] = useState(initialAnnouncements)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingAnnouncement, setEditingAnnouncement] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -48,38 +52,77 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
     setDialogOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setSaving(true)
+    const supabase = createClient()
+
     if (editingAnnouncement) {
-      setAnnouncements(
-        announcements.map((a) =>
-          a.id === editingAnnouncement.id
-            ? { ...a, ...formData }
-            : a
-        )
-      )
-    } else {
-      const newAnnouncement = {
-        id: `ann-${Date.now()}`,
-        ...formData,
-        created_at: new Date().toISOString(),
+      const { error } = await supabase
+        .from("announcements")
+        .update(formData)
+        .eq("id", editingAnnouncement.id)
+
+      if (error) {
+        alert("Failed to update announcement: " + error.message)
+        setSaving(false)
+        return
       }
-      setAnnouncements([newAnnouncement, ...announcements])
+    } else {
+      const { error } = await supabase
+        .from("announcements")
+        .insert(formData)
+
+      if (error) {
+        alert("Failed to create announcement: " + error.message)
+        setSaving(false)
+        return
+      }
     }
+
+    setSaving(false)
     setDialogOpen(false)
+    router.refresh()
   }
 
-  const handleDelete = (announcementId) => {
-    if (confirm("Are you sure you want to delete this announcement?")) {
-      setAnnouncements(announcements.filter((a) => a.id !== announcementId))
+  const handleDelete = async (announcementId) => {
+    if (!confirm("Are you sure you want to delete this announcement?")) return
+
+    const prev = announcements
+    setAnnouncements(announcements.filter((a) => a.id !== announcementId))
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("announcements")
+      .delete()
+      .eq("id", announcementId)
+
+    if (error) {
+      alert("Failed to delete announcement: " + error.message)
+      setAnnouncements(prev)
     }
   }
 
-  const togglePin = (announcementId) => {
+  const togglePin = async (announcementId) => {
+    const announcement = announcements.find((a) => a.id === announcementId)
+    const newPinned = !announcement.is_pinned
+
+    const prev = announcements
     setAnnouncements(
       announcements.map((a) =>
-        a.id === announcementId ? { ...a, is_pinned: !a.is_pinned } : a
+        a.id === announcementId ? { ...a, is_pinned: newPinned } : a
       )
     )
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("announcements")
+      .update({ is_pinned: newPinned })
+      .eq("id", announcementId)
+
+    if (error) {
+      alert("Failed to update pin status: " + error.message)
+      setAnnouncements(prev)
+    }
   }
 
   // Sort: pinned first, then by date
@@ -232,8 +275,8 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.title}>
-              {editingAnnouncement ? "Update" : "Publish"}
+            <Button onClick={handleSave} disabled={!formData.title || saving}>
+              {saving ? "Saving..." : editingAnnouncement ? "Update" : "Publish"}
             </Button>
           </DialogFooter>
         </DialogContent>

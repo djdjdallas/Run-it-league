@@ -1,4 +1,4 @@
-import { getPlayers, getTeams } from "@/lib/queries"
+import { getAllPlayers, getTeams } from "@/lib/queries"
 import PlayersClient from "./players-client"
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 
 export default async function AdminPlayersPage() {
   const [players, teams] = await Promise.all([
-    getPlayers(),
+    getAllPlayers(),
     getTeams(),
   ])
 

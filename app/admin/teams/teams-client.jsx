@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,14 +24,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Plus, Pencil, Trash2 } from "lucide-react"
+import { ImageUpload } from "@/components/image-upload"
 
 export default function TeamsClient({ initialTeams }) {
+  const router = useRouter()
   const [teams, setTeams] = useState(initialTeams)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTeam, setEditingTeam] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     abbreviation: "",
+    logo_url: "",
     primary_color: "#000000",
     secondary_color: "#FFFFFF",
   })
@@ -39,6 +45,7 @@ export default function TeamsClient({ initialTeams }) {
     setFormData({
       name: "",
       abbreviation: "",
+      logo_url: "",
       primary_color: "#000000",
       secondary_color: "#FFFFFF",
     })
@@ -50,39 +57,58 @@ export default function TeamsClient({ initialTeams }) {
     setFormData({
       name: team.name,
       abbreviation: team.abbreviation || "",
+      logo_url: team.logo_url || "",
       primary_color: team.primary_color || "#000000",
       secondary_color: team.secondary_color || "#FFFFFF",
     })
     setDialogOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setSaving(true)
+    const supabase = createClient()
+    const data = { ...formData, logo_url: formData.logo_url || null }
+
     if (editingTeam) {
-      // Update existing team
-      setTeams(
-        teams.map((t) =>
-          t.id === editingTeam.id
-            ? { ...t, ...formData }
-            : t
-        )
-      )
-    } else {
-      // Create new team
-      const newTeam = {
-        id: `team-${Date.now()}`,
-        ...formData,
-        wins: 0,
-        losses: 0,
-        logo_url: null,
+      const { error } = await supabase
+        .from("teams")
+        .update(data)
+        .eq("id", editingTeam.id)
+
+      if (error) {
+        alert("Failed to update team: " + error.message)
+        setSaving(false)
+        return
       }
-      setTeams([...teams, newTeam])
+    } else {
+      const { error } = await supabase
+        .from("teams")
+        .insert({ ...data, wins: 0, losses: 0 })
+
+      if (error) {
+        alert("Failed to create team: " + error.message)
+        setSaving(false)
+        return
+      }
     }
+
+    setSaving(false)
     setDialogOpen(false)
+    router.refresh()
   }
 
-  const handleDelete = (teamId) => {
-    if (confirm("Are you sure you want to delete this team?")) {
-      setTeams(teams.filter((t) => t.id !== teamId))
+  const handleDelete = async (teamId) => {
+    if (!confirm("Are you sure you want to delete this team?")) return
+
+    const prev = teams
+    setTeams(teams.filter((t) => t.id !== teamId))
+
+    const supabase = createClient()
+    const { error } = await supabase.from("teams").delete().eq("id", teamId)
+
+    if (error) {
+      alert("Failed to delete team: " + error.message)
+      setTeams(prev)
     }
   }
 
@@ -218,6 +244,15 @@ export default function TeamsClient({ initialTeams }) {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label>Team Logo</Label>
+              <ImageUpload
+                folder="teams"
+                currentUrl={formData.logo_url || undefined}
+                onUpload={(url) => setFormData({ ...formData, logo_url: url })}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primary_color">Primary Color</Label>
@@ -271,8 +306,8 @@ export default function TeamsClient({ initialTeams }) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.name}>
-              {editingTeam ? "Update" : "Create"}
+            <Button onClick={handleSave} disabled={!formData.name || saving}>
+              {saving ? "Saving..." : editingTeam ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

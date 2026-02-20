@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,11 +26,14 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, Search } from "lucide-react"
+import { ImageUpload } from "@/components/image-upload"
 
 export default function PlayersClient({ initialPlayers, teams }) {
+  const router = useRouter()
   const [players, setPlayers] = useState(initialPlayers)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingPlayer, setEditingPlayer] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [teamFilter, setTeamFilter] = useState("all")
   const [formData, setFormData] = useState({
@@ -37,6 +42,7 @@ export default function PlayersClient({ initialPlayers, teams }) {
     position: "PG",
     height: "",
     team_id: "",
+    photo_url: "",
     is_active: true,
   })
 
@@ -59,6 +65,7 @@ export default function PlayersClient({ initialPlayers, teams }) {
       position: "PG",
       height: "",
       team_id: "",
+      photo_url: "",
       is_active: true,
     })
     setDialogOpen(true)
@@ -72,37 +79,69 @@ export default function PlayersClient({ initialPlayers, teams }) {
       position: player.position || "PG",
       height: player.height || "",
       team_id: player.team_id || "",
+      photo_url: player.photo_url || "",
       is_active: player.is_active,
     })
     setDialogOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setSaving(true)
+    const supabase = createClient()
+
     const playerData = {
-      ...formData,
+      name: formData.name,
       number: formData.number ? parseInt(formData.number) : null,
+      position: formData.position,
+      height: formData.height || null,
+      team_id: formData.team_id || null,
+      photo_url: formData.photo_url || null,
+      is_active: formData.is_active,
     }
 
     if (editingPlayer) {
-      setPlayers(
-        players.map((p) =>
-          p.id === editingPlayer.id ? { ...p, ...playerData } : p
-        )
-      )
-    } else {
-      const newPlayer = {
-        id: `player-${Date.now()}`,
-        ...playerData,
-        photo_url: null,
+      const { error } = await supabase
+        .from("players")
+        .update(playerData)
+        .eq("id", editingPlayer.id)
+
+      if (error) {
+        alert("Failed to update player: " + error.message)
+        setSaving(false)
+        return
       }
-      setPlayers([...players, newPlayer])
+    } else {
+      const { error } = await supabase
+        .from("players")
+        .insert(playerData)
+
+      if (error) {
+        alert("Failed to create player: " + error.message)
+        setSaving(false)
+        return
+      }
     }
+
+    setSaving(false)
     setDialogOpen(false)
+    router.refresh()
   }
 
-  const handleDelete = (playerId) => {
-    if (confirm("Are you sure you want to delete this player?")) {
-      setPlayers(players.filter((p) => p.id !== playerId))
+  const handleDelete = async (playerId) => {
+    if (!confirm("Are you sure you want to delete this player?")) return
+
+    const prev = players
+    setPlayers(players.filter((p) => p.id !== playerId))
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("players")
+      .delete()
+      .eq("id", playerId)
+
+    if (error) {
+      alert("Failed to delete player: " + error.message)
+      setPlayers(prev)
     }
   }
 
@@ -300,6 +339,15 @@ export default function PlayersClient({ initialPlayers, teams }) {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label>Player Photo</Label>
+              <ImageUpload
+                folder="players"
+                currentUrl={formData.photo_url || undefined}
+                onUpload={(url) => setFormData({ ...formData, photo_url: url })}
+              />
+            </div>
+
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -318,8 +366,8 @@ export default function PlayersClient({ initialPlayers, teams }) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.name}>
-              {editingPlayer ? "Update" : "Create"}
+            <Button onClick={handleSave} disabled={!formData.name || saving}>
+              {saving ? "Saving..." : editingPlayer ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

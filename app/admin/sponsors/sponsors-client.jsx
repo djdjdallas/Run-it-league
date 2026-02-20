@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,11 +17,14 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Plus, Pencil, Trash2, ExternalLink, GripVertical } from "lucide-react"
+import { ImageUpload } from "@/components/image-upload"
 
 export default function SponsorsClient({ initialSponsors }) {
+  const router = useRouter()
   const [sponsors, setSponsors] = useState(initialSponsors)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSponsor, setEditingSponsor] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     logo_url: "",
@@ -52,37 +57,77 @@ export default function SponsorsClient({ initialSponsors }) {
     setDialogOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setSaving(true)
+    const supabase = createClient()
+
     if (editingSponsor) {
-      setSponsors(
-        sponsors.map((s) =>
-          s.id === editingSponsor.id ? { ...s, ...formData } : s
-        )
-      )
-    } else {
-      const newSponsor = {
-        id: `sponsor-${Date.now()}`,
-        ...formData,
-        display_order: sponsors.length,
-        created_at: new Date().toISOString(),
+      const { error } = await supabase
+        .from("sponsors")
+        .update(formData)
+        .eq("id", editingSponsor.id)
+
+      if (error) {
+        alert("Failed to update sponsor: " + error.message)
+        setSaving(false)
+        return
       }
-      setSponsors([...sponsors, newSponsor])
+    } else {
+      const { error } = await supabase
+        .from("sponsors")
+        .insert({ ...formData, display_order: sponsors.length })
+
+      if (error) {
+        alert("Failed to create sponsor: " + error.message)
+        setSaving(false)
+        return
+      }
     }
+
+    setSaving(false)
     setDialogOpen(false)
+    router.refresh()
   }
 
-  const handleDelete = (sponsorId) => {
-    if (confirm("Are you sure you want to delete this sponsor?")) {
-      setSponsors(sponsors.filter((s) => s.id !== sponsorId))
+  const handleDelete = async (sponsorId) => {
+    if (!confirm("Are you sure you want to delete this sponsor?")) return
+
+    const prev = sponsors
+    setSponsors(sponsors.filter((s) => s.id !== sponsorId))
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("sponsors")
+      .delete()
+      .eq("id", sponsorId)
+
+    if (error) {
+      alert("Failed to delete sponsor: " + error.message)
+      setSponsors(prev)
     }
   }
 
-  const toggleActive = (sponsorId) => {
+  const toggleActive = async (sponsorId) => {
+    const sponsor = sponsors.find((s) => s.id === sponsorId)
+    const newActive = !sponsor.is_active
+
+    const prev = sponsors
     setSponsors(
       sponsors.map((s) =>
-        s.id === sponsorId ? { ...s, is_active: !s.is_active } : s
+        s.id === sponsorId ? { ...s, is_active: newActive } : s
       )
     )
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("sponsors")
+      .update({ is_active: newActive })
+      .eq("id", sponsorId)
+
+    if (error) {
+      alert("Failed to update sponsor status: " + error.message)
+      setSponsors(prev)
+    }
   }
 
   const sortedSponsors = [...sponsors].sort(
@@ -227,14 +272,11 @@ export default function SponsorsClient({ initialSponsors }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logo_url">Logo URL</Label>
-              <Input
-                id="logo_url"
-                value={formData.logo_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, logo_url: e.target.value })
-                }
-                placeholder="https://example.com/logo.png"
+              <Label>Sponsor Logo</Label>
+              <ImageUpload
+                folder="sponsors"
+                currentUrl={formData.logo_url || undefined}
+                onUpload={(url) => setFormData({ ...formData, logo_url: url })}
               />
             </div>
 
@@ -284,8 +326,8 @@ export default function SponsorsClient({ initialSponsors }) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.name}>
-              {editingSponsor ? "Update" : "Add"} Sponsor
+            <Button onClick={handleSave} disabled={!formData.name || saving}>
+              {saving ? "Saving..." : editingSponsor ? "Update" : "Add"} {!saving && "Sponsor"}
             </Button>
           </DialogFooter>
         </DialogContent>

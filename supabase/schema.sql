@@ -444,6 +444,98 @@ create policy "Admin full access for event_registrations"
   to authenticated
   using (true);
 
+-- =====================================================
+-- TEAM REGISTRATION SYSTEM
+-- =====================================================
+
+-- Team Registrations table (for captain-initiated team registration)
+create table if not exists team_registrations (
+  id uuid primary key default gen_random_uuid(),
+  team_name text not null,
+  primary_color text default '#000000',
+  secondary_color text default '#FFFFFF',
+  captain_name text not null,
+  captain_email text not null,
+  captain_phone text,
+  status text default 'pending_payment', -- pending_payment, paid, roster_complete
+  roster_token text unique, -- secure token for roster entry page
+  roster_token_expires_at timestamptz,
+  min_players integer default 5,
+  max_players integer default 15,
+  season_id uuid references seasons(id) on delete set null,
+  created_at timestamptz default now(),
+  paid_at timestamptz,
+  roster_completed_at timestamptz,
+  team_id uuid references teams(id) on delete set null -- links to created team after roster complete
+);
+
+-- Team Roster Entries table (temporary storage before team creation)
+create table if not exists team_roster_entries (
+  id uuid primary key default gen_random_uuid(),
+  team_registration_id uuid references team_registrations(id) on delete cascade not null,
+  player_name text not null,
+  created_at timestamptz default now()
+);
+
+-- Add team_registration_id to payments table
+alter table payments add column if not exists team_registration_id uuid references team_registrations(id) on delete set null;
+
+-- Create indexes for team registration tables
+create index if not exists idx_team_registrations_token on team_registrations(roster_token);
+create index if not exists idx_team_registrations_email on team_registrations(captain_email);
+create index if not exists idx_team_registrations_status on team_registrations(status);
+create index if not exists idx_team_roster_entries_registration on team_roster_entries(team_registration_id);
+create index if not exists idx_payments_team_registration on payments(team_registration_id);
+
+-- Enable RLS on team registration tables
+alter table team_registrations enable row level security;
+alter table team_roster_entries enable row level security;
+
+-- Public can create team registrations
+create policy "Public insert for team_registrations"
+  on team_registrations for insert
+  to anon, authenticated
+  with check (true);
+
+-- Public can read their own team registration by token
+create policy "Public read team_registrations by token"
+  on team_registrations for select
+  to anon, authenticated
+  using (true);
+
+-- Public can update team registration (for status changes)
+create policy "Public update for team_registrations"
+  on team_registrations for update
+  to anon, authenticated
+  using (true);
+
+-- Public can manage roster entries for their registration
+create policy "Public insert for team_roster_entries"
+  on team_roster_entries for insert
+  to anon, authenticated
+  with check (true);
+
+create policy "Public read for team_roster_entries"
+  on team_roster_entries for select
+  to anon, authenticated
+  using (true);
+
+create policy "Public delete for team_roster_entries"
+  on team_roster_entries for delete
+  to anon, authenticated
+  using (true);
+
+-- Admin full access for team registrations
+create policy "Admin full access for team_registrations"
+  on team_registrations for all
+  to authenticated
+  using (true);
+
+create policy "Admin full access for team_roster_entries"
+  on team_roster_entries for all
+  to authenticated
+  using (true);
+
 -- Storage bucket for images (logos, photos, stat sheets)
 -- Run this separately in Supabase dashboard or via API:
 -- insert into storage.buckets (id, name, public) values ('images', 'images', true);

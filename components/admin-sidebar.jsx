@@ -28,6 +28,7 @@ const sidebarLinks = [
   { href: "/admin/registrations", label: "Registrations", icon: UserPlus },
   { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },
   { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
+  { href: "/admin/gallery", label: "Gallery", icon: Image },
 ]
 
 export function AdminSidebar({ onSignOut }) {

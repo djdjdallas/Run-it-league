@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -67,13 +68,25 @@ export default function RegistrationsClient({ initialRegistrations }) {
     return matchesSearch && matchesStatus
   })
 
-  const updateStatus = (regId, newStatus) => {
+  const updateStatus = async (regId, newStatus) => {
+    const prev = registrations
     setRegistrations(
       registrations.map((r) =>
         r.id === regId ? { ...r, status: newStatus } : r
       )
     )
     setDetailsOpen(false)
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("registrations")
+      .update({ status: newStatus })
+      .eq("id", regId)
+
+    if (error) {
+      alert("Failed to update status: " + error.message)
+      setRegistrations(prev)
+    }
   }
 
   const openDetails = (reg) => {

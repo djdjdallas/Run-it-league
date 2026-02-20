@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { teamRegistrations } from "../team-registration/route"
 
 // This would use Stripe in production
 // import Stripe from 'stripe'
@@ -7,7 +8,7 @@ import { NextResponse } from "next/server"
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { type, registration_id, amount, email, description } = body
+    const { type, registration_id, team_registration_id, amount, email, description } = body
 
     // Validate required fields
     if (!type || !amount || !email) {
@@ -15,6 +16,25 @@ export async function POST(request) {
         { error: "Missing required fields" },
         { status: 400 }
       )
+    }
+
+    // Determine success URL based on payment type
+    let successUrl = "/payment/success?demo=true"
+    let metadata = { type }
+
+    if (type === "team_registration" && team_registration_id) {
+      successUrl = `/register/team/success?registration_id=${team_registration_id}`
+      metadata.team_registration_id = team_registration_id
+
+      // Update registration status to paid (in demo mode)
+      const registration = teamRegistrations.get(team_registration_id)
+      if (registration) {
+        registration.status = "paid"
+        registration.paid_at = new Date().toISOString()
+        teamRegistrations.set(team_registration_id, registration)
+      }
+    } else if (registration_id) {
+      metadata.registration_id = registration_id
     }
 
     // In production, this would create a Stripe checkout session:
@@ -35,13 +55,10 @@ export async function POST(request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}${successUrl}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/cancel`,
       customer_email: email,
-      metadata: {
-        type,
-        registration_id: registration_id || '',
-      },
+      metadata,
     })
 
     return NextResponse.json({
@@ -56,7 +73,7 @@ export async function POST(request) {
       message: "Demo mode - Stripe integration ready",
       sessionId: `demo_session_${Date.now()}`,
       // In production, this would be the Stripe checkout URL
-      url: `/payment/success?demo=true`,
+      url: successUrl,
     })
   } catch (error) {
     console.error("Payment error:", error)

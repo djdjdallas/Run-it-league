@@ -1,4 +1,4 @@
-import { getSponsors } from "@/lib/queries"
+import { getAllSponsors } from "@/lib/queries"
 import SponsorsClient from "./sponsors-client"
 
 export const metadata = {
@@ -7,7 +7,7 @@ export const metadata = {
 }
 
 export default async function AdminSponsorsPage() {
-  const sponsors = await getSponsors()
+  const sponsors = await getAllSponsors()
 
   return <SponsorsClient initialSponsors={sponsors} />
 }

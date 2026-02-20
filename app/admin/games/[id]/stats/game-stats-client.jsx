@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,6 +28,7 @@ export default function GameStatsClient({
   awayRoster,
   existingStats,
 }) {
+  const router = useRouter()
   const [homeStats, setHomeStats] = useState({})
   const [awayStats, setAwayStats] = useState({})
   const [saving, setSaving] = useState(false)
@@ -171,10 +174,65 @@ export default function GameStatsClient({
 
   const handleSave = async () => {
     setSaving(true)
-    // In production, this would save to Supabase
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const supabase = createClient()
+
+    const rows = []
+    Object.entries(homeStats).forEach(([playerId, stats]) => {
+      rows.push({
+        game_id: game.id,
+        player_id: playerId,
+        team_id: game.home_team_id,
+        minutes: stats.minutes || 0,
+        points: stats.points || 0,
+        rebounds: stats.rebounds || 0,
+        assists: stats.assists || 0,
+        steals: stats.steals || 0,
+        blocks: stats.blocks || 0,
+        turnovers: stats.turnovers || 0,
+        fouls: stats.fouls || 0,
+        fg_made: stats.fg_made || 0,
+        fg_attempted: stats.fg_attempted || 0,
+        three_made: stats.three_made || 0,
+        three_attempted: stats.three_attempted || 0,
+        ft_made: stats.ft_made || 0,
+        ft_attempted: stats.ft_attempted || 0,
+      })
+    })
+    Object.entries(awayStats).forEach(([playerId, stats]) => {
+      rows.push({
+        game_id: game.id,
+        player_id: playerId,
+        team_id: game.away_team_id,
+        minutes: stats.minutes || 0,
+        points: stats.points || 0,
+        rebounds: stats.rebounds || 0,
+        assists: stats.assists || 0,
+        steals: stats.steals || 0,
+        blocks: stats.blocks || 0,
+        turnovers: stats.turnovers || 0,
+        fouls: stats.fouls || 0,
+        fg_made: stats.fg_made || 0,
+        fg_attempted: stats.fg_attempted || 0,
+        three_made: stats.three_made || 0,
+        three_attempted: stats.three_attempted || 0,
+        ft_made: stats.ft_made || 0,
+        ft_attempted: stats.ft_attempted || 0,
+      })
+    })
+
+    const { error } = await supabase
+      .from("player_stats")
+      .upsert(rows, { onConflict: "game_id,player_id" })
+
+    if (error) {
+      alert("Failed to save stats: " + error.message)
+      setSaving(false)
+      return
+    }
+
     setSaving(false)
     setSaved(true)
+    router.refresh()
   }
 
   const StatInputRow = ({ player, stats, isHome }) => (

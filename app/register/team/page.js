@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
+import { ImageUpload } from "@/components/image-upload"
 import {
   Users,
   Check,
@@ -19,7 +20,7 @@ import {
   Palette,
 } from "lucide-react"
 
-const teamRegistrationFee = 500.00
+const teamRegistrationFee = 450.00
 
 export default function TeamRegisterPage() {
   const [step, setStep] = useState(1)
@@ -32,6 +33,7 @@ export default function TeamRegisterPage() {
     captain_name: "",
     captain_email: "",
     captain_phone: "",
+    logo_url: "",
     waiver_signed: false,
   })
 
@@ -93,6 +95,7 @@ export default function TeamRegisterPage() {
           captain_name: formData.captain_name,
           captain_email: formData.captain_email,
           captain_phone: formData.captain_phone,
+          logo_url: formData.logo_url || null,
         }),
       })
 
@@ -280,6 +283,15 @@ export default function TeamRegisterPage() {
                           </div>
                         </div>
                       </div>
+
+                      <div className="space-y-2">
+                        <Label>Team Logo (optional)</Label>
+                        <ImageUpload
+                          folder="teams"
+                          currentUrl={formData.logo_url || null}
+                          onUpload={(url) => updateField("logo_url", url)}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -353,6 +365,16 @@ export default function TeamRegisterPage() {
                             style={{ backgroundColor: formData.secondary_color }}
                           />
                         </div>
+                        {formData.logo_url && (
+                          <div className="pt-2">
+                            <span className="text-muted-foreground text-sm">Team Logo:</span>
+                            <img
+                              src={formData.logo_url}
+                              alt="Team logo"
+                              className="w-20 h-20 object-cover rounded-lg border mt-1"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div className="border rounded-lg p-4">
@@ -510,6 +532,7 @@ export default function TeamRegisterPage() {
                       Live streaming of games
                     </li>
                   </ul>
+                  <p className="text-xs text-muted-foreground mt-3 italic">*Jerseys not included</p>
                 </CardContent>
               </Card>
 

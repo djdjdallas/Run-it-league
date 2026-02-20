@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,9 +30,11 @@ import { Plus, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
 
 export default function GamesClient({ initialGames, teams }) {
+  const router = useRouter()
   const [games, setGames] = useState(initialGames)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingGame, setEditingGame] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     home_team_id: "",
     away_team_id: "",
@@ -73,47 +77,66 @@ export default function GamesClient({ initialGames, teams }) {
     setDialogOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setSaving(true)
+    const supabase = createClient()
+
     const gameDateTime = new Date(
       `${formData.game_date}T${formData.game_time || "12:00"}`
     )
-
-    const homeTeam = teams.find((t) => t.id === formData.home_team_id)
-    const awayTeam = teams.find((t) => t.id === formData.away_team_id)
 
     const gameData = {
       home_team_id: formData.home_team_id,
       away_team_id: formData.away_team_id,
       game_date: gameDateTime.toISOString(),
-      location: formData.location,
+      location: formData.location || null,
       status: formData.status,
       home_score:
         formData.status === "final" ? parseInt(formData.home_score) || 0 : null,
       away_score:
         formData.status === "final" ? parseInt(formData.away_score) || 0 : null,
-      home_team: homeTeam,
-      away_team: awayTeam,
     }
 
     if (editingGame) {
-      setGames(
-        games.map((g) =>
-          g.id === editingGame.id ? { ...g, ...gameData } : g
-        )
-      )
-    } else {
-      const newGame = {
-        id: `game-${Date.now()}`,
-        ...gameData,
+      const { error } = await supabase
+        .from("games")
+        .update(gameData)
+        .eq("id", editingGame.id)
+
+      if (error) {
+        alert("Failed to update game: " + error.message)
+        setSaving(false)
+        return
       }
-      setGames([...games, newGame])
+    } else {
+      const { error } = await supabase
+        .from("games")
+        .insert(gameData)
+
+      if (error) {
+        alert("Failed to create game: " + error.message)
+        setSaving(false)
+        return
+      }
     }
+
+    setSaving(false)
     setDialogOpen(false)
+    router.refresh()
   }
 
-  const handleDelete = (gameId) => {
-    if (confirm("Are you sure you want to delete this game?")) {
-      setGames(games.filter((g) => g.id !== gameId))
+  const handleDelete = async (gameId) => {
+    if (!confirm("Are you sure you want to delete this game?")) return
+
+    const prev = games
+    setGames(games.filter((g) => g.id !== gameId))
+
+    const supabase = createClient()
+    const { error } = await supabase.from("games").delete().eq("id", gameId)
+
+    if (error) {
+      alert("Failed to delete game: " + error.message)
+      setGames(prev)
     }
   }
 
@@ -369,9 +392,9 @@ export default function GamesClient({ initialGames, teams }) {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!formData.home_team_id || !formData.away_team_id || !formData.game_date}
+              disabled={!formData.home_team_id || !formData.away_team_id || !formData.game_date || saving}
             >
-              {editingGame ? "Update" : "Create"}
+              {saving ? "Saving..." : editingGame ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
