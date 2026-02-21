@@ -129,7 +129,7 @@ export default function RosterCompletePage() {
                 <span className="text-muted-foreground">Status:</span>
                 <span className="text-green-600 font-medium">Active</span>
                 <span className="text-muted-foreground">Season:</span>
-                <span>Spring 2025</span>
+                <span>Spring 2026</span>
               </div>
             </div>
 

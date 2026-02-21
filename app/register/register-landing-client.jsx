@@ -104,9 +104,9 @@ export default function RegisterLandingClient({ sponsors }) {
               <Card>
                 <CardContent className="pt-6">
                   <Calendar className="h-8 w-8 text-primary mb-3" />
-                  <h3 className="font-semibold mb-2">Spring 2025 Season</h3>
+                  <h3 className="font-semibold mb-2">Spring 2026 Season</h3>
                   <p className="text-sm text-muted-foreground">
-                    Season runs from March through June 2025. Games are played on weekends.
+                    Season runs from March through June 2026. Games are played on weekends.
                   </p>
                 </CardContent>
               </Card>

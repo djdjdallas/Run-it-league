@@ -104,16 +104,14 @@ export default function TeamRegisterPage() {
         throw new Error(regData.error || "Failed to create registration")
       }
 
-      // 2. Create checkout session
+      // 2. Create Stripe checkout session
       const checkoutResponse = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "team_registration",
           team_registration_id: regData.id,
-          amount: teamRegistrationFee,
           email: formData.captain_email,
-          description: `Team Registration: ${formData.team_name}`,
         }),
       })
 
@@ -122,13 +120,9 @@ export default function TeamRegisterPage() {
         throw new Error(checkoutData.error || "Failed to create checkout")
       }
 
-      // 3. Redirect to payment (or success in demo mode)
+      // 3. Redirect to Stripe checkout
       if (checkoutData.url) {
-        // For demo mode, include the registration ID
-        const redirectUrl = checkoutData.url.includes("?")
-          ? `${checkoutData.url}&registration_id=${regData.id}`
-          : `${checkoutData.url}?registration_id=${regData.id}`
-        window.location.href = redirectUrl
+        window.location.href = checkoutData.url
       }
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.")
@@ -469,9 +463,9 @@ export default function TeamRegisterPage() {
                   <div className="flex items-start gap-3">
                     <Calendar className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-medium">Spring 2025 Season</p>
+                      <p className="font-medium">Spring 2026 Season</p>
                       <p className="text-sm text-muted-foreground">
-                        March - June 2025
+                        March - June 2026
                       </p>
                     </div>
                   </div>
