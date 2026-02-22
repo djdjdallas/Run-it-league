@@ -1,12 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -22,104 +20,115 @@ export function Header() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Don't show header on admin pages
   if (pathname.startsWith("/admin")) {
     return null
   }
 
   return (
     <>
-    <div className="fixed top-0 left-0 right-0 z-50">
-      <header
-        className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      >
-      <div className="container flex h-16 items-center">
-        <Link href="/" className="flex items-center space-x-2 mr-6">
-          <Image src="/assets/Runit.png" alt="Run It League" width={40} height={40} className="h-10 w-10 object-contain" />
-          <span className="font-bold text-xl">Run It League</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "transition-colors hover:text-foreground/80",
-                pathname === link.href
-                  ? "text-foreground"
-                  : "text-foreground/60"
-              )}
-            >
-              {link.label}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <header className="w-full bg-[#080808]/95 backdrop-blur border-b border-white/10">
+          <div className="container flex h-16 items-center">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 mr-8">
+              <span className="font-display text-xl tracking-tight">
+                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN</span>
+                <span className="text-white ml-1">IT LEAGUE</span>
+              </span>
             </Link>
-          ))}
-        </nav>
 
-        <div className="flex-1" />
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "relative py-1 transition-colors",
+                    pathname === link.href
+                      ? "text-neon"
+                      : "text-white/60 hover:text-neon"
+                  )}
+                >
+                  {link.label}
+                  {pathname === link.href && (
+                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-neon" />
+                  )}
+                </Link>
+              ))}
+            </nav>
 
-        <div className="hidden md:flex items-center gap-2">
-          <Link href="/register">
-            <Button size="sm">
-              Register
-            </Button>
-          </Link>
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              Admin
-            </Button>
-          </Link>
-        </div>
+            <div className="flex-1" />
 
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
-        </Button>
-      </div>
-
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t">
-          <nav className="container py-4 flex flex-col space-y-3">
-            {navLinks.map((link) => (
+            {/* Desktop CTAs */}
+            <div className="hidden md:flex items-center gap-3">
               <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-foreground/80",
-                  pathname === link.href
-                    ? "text-foreground"
-                    : "text-foreground/60"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
+                href="/register"
+                className="bg-neon text-black px-4 py-2 text-sm font-bold uppercase tracking-wider hover:bg-neon/90 transition-colors"
               >
-                {link.label}
+                Register
               </Link>
-            ))}
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-foreground/60 hover:text-foreground/80"
-              onClick={() => setMobileMenuOpen(false)}
+              <Link
+                href="/admin"
+                className="text-white/40 text-sm hover:text-white/70 transition-colors"
+              >
+                Admin
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden text-white/60 hover:text-white p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              Admin
-            </Link>
-          </nav>
-        </div>
-      )}
-      </header>
-    </div>
-    {/* Spacer to prevent content from going under fixed header */}
-    <div className="h-16" />
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-white/10 bg-[#080808]">
+              <nav className="container py-4 flex flex-col gap-3">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      "text-sm font-medium transition-colors py-1",
+                      pathname === link.href
+                        ? "text-neon"
+                        : "text-white/60 hover:text-neon"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <Link
+                  href="/register"
+                  className="bg-neon text-black px-4 py-2 text-sm font-bold uppercase tracking-wider text-center mt-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Register
+                </Link>
+                <Link
+                  href="/admin"
+                  className="text-sm text-white/40 hover:text-white/70"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Admin
+                </Link>
+              </nav>
+            </div>
+          )}
+        </header>
+      </div>
+      {/* Spacer */}
+      <div className="h-16" />
     </>
   )
 }

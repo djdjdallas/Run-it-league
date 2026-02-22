@@ -1,68 +1,84 @@
-import { Trophy } from "lucide-react"
 import Link from "next/link"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-card">
-      <div className="container py-8 md:py-12">
+    <footer className="bg-[#080808] border-t border-white/10">
+      <div className="container py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {/* Logo & Description */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Trophy className="h-6 w-6" />
-              <span className="font-bold">Run It League</span>
+            <Link href="/" className="inline-block mb-4">
+              <span className="font-display text-xl tracking-tight">
+                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN</span>
+                <span className="text-white ml-1">IT LEAGUE</span>
+              </span>
             </Link>
-            <p className="text-sm text-muted-foreground">
-              Your go-to platform for basketball league management.
+            <p className="text-sm text-white/40 leading-relaxed">
+              Competitive basketball, organized. Track teams, stats, and schedules all in one place.
             </p>
           </div>
 
+          {/* Quick Links */}
           <div>
-            <h3 className="font-semibold mb-3">Quick Links</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-4">
+              Quick Links
+            </h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/teams" className="hover:text-foreground transition-colors">
+                <Link href="/teams" className="text-white/50 hover:text-neon transition-colors">
                   Teams
                 </Link>
               </li>
               <li>
-                <Link href="/players" className="hover:text-foreground transition-colors">
-                  Players
-                </Link>
-              </li>
-              <li>
-                <Link href="/schedule" className="hover:text-foreground transition-colors">
+                <Link href="/schedule" className="text-white/50 hover:text-neon transition-colors">
                   Schedule
                 </Link>
               </li>
               <li>
-                <Link href="/stats" className="hover:text-foreground transition-colors">
+                <Link href="/stats" className="text-white/50 hover:text-neon transition-colors">
                   Stats
+                </Link>
+              </li>
+              <li>
+                <Link href="/gallery" className="text-white/50 hover:text-neon transition-colors">
+                  Gallery
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* League */}
           <div>
-            <h3 className="font-semibold mb-3">League</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-4">
+              League
+            </h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link href="/teams" className="text-white/50 hover:text-neon transition-colors">
                   Standings
                 </Link>
               </li>
               <li>
-                <Link href="/schedule" className="hover:text-foreground transition-colors">
+                <Link href="/schedule" className="text-white/50 hover:text-neon transition-colors">
                   Games
+                </Link>
+              </li>
+              <li>
+                <Link href="/register" className="text-white/50 hover:text-neon transition-colors">
+                  Register
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Admin */}
           <div>
-            <h3 className="font-semibold mb-3">Admin</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-4">
+              Admin
+            </h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/admin" className="hover:text-foreground transition-colors">
+                <Link href="/admin" className="text-white/50 hover:text-neon transition-colors">
                   Dashboard
                 </Link>
               </li>
@@ -70,8 +86,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Run It League. All rights reserved.</p>
+        {/* Copyright */}
+        <div className="mt-12 pt-8 border-t border-white/10 text-center">
+          <p className="text-sm text-white/30">
+            &copy; {new Date().getFullYear()} Run It League. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
