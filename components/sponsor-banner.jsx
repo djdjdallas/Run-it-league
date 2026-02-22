@@ -40,7 +40,7 @@ export function SponsorBanner({ sponsors = [], variant = "default", showTitle = 
             <img
               src={sponsor.logo_url}
               alt={sponsor.name}
-              className="h-10 object-contain mx-auto"
+              className="h-16 object-contain mx-auto"
             />
           ) : (
             <span className="text-sm font-medium text-muted-foreground">
@@ -71,7 +71,7 @@ export function SponsorBanner({ sponsors = [], variant = "default", showTitle = 
               <img
                 src={sponsor.logo_url}
                 alt={sponsor.name}
-                className="h-6 object-contain grayscale hover:grayscale-0 transition-all"
+                className="h-10 object-contain grayscale hover:grayscale-0 transition-all"
               />
             ) : (
               <span className="text-xs font-medium text-muted-foreground hover:text-foreground">
@@ -109,7 +109,7 @@ export function SponsorBanner({ sponsors = [], variant = "default", showTitle = 
                   <img
                     src={sponsor.logo_url}
                     alt={sponsor.name}
-                    className="h-12 object-contain"
+                    className="h-20 object-contain"
                   />
                 ) : (
                   <div className="px-6 py-3 bg-muted rounded-lg">
@@ -136,7 +136,7 @@ export function SponsorBanner({ sponsors = [], variant = "default", showTitle = 
                   <img
                     src={sponsor.logo_url}
                     alt={sponsor.name}
-                    className="h-8 object-contain grayscale hover:grayscale-0 transition-all"
+                    className="h-14 object-contain grayscale hover:grayscale-0 transition-all"
                   />
                 ) : (
                   <span className="text-sm text-muted-foreground hover:text-foreground px-4 py-2 bg-muted/50 rounded">
@@ -177,7 +177,7 @@ export function SponsorSidebar({ sponsors = [] }) {
                 <img
                   src={sponsor.logo_url}
                   alt={sponsor.name}
-                  className="h-10 object-contain mx-auto"
+                  className="h-16 object-contain mx-auto"
                 />
               ) : (
                 <span className="text-sm font-medium">{sponsor.name}</span>
