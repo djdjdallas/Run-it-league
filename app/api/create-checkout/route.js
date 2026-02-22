@@ -2,7 +2,9 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { teamRegistrations } from "../team-registration/route"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY)
+}
 
 export async function POST(request) {
   try {
@@ -16,6 +18,7 @@ export async function POST(request) {
       )
     }
 
+    const stripe = getStripe()
     const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
     if (type === "team_registration" && team_registration_id) {
