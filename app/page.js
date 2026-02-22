@@ -6,15 +6,17 @@ import { StandingsTable } from "@/components/standings-table"
 import { GameCard } from "@/components/game-card"
 import { AnnouncementCard } from "@/components/announcement-card"
 import { Footer } from "@/components/footer"
+import { SponsorBanner } from "@/components/sponsor-banner"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
-import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements } from "@/lib/queries"
+import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
 
 export default async function HomePage() {
-  const [teams, recentGames, upcomingGames, allAnnouncements] = await Promise.all([
+  const [teams, recentGames, upcomingGames, allAnnouncements, sponsors] = await Promise.all([
     getTeams(),
     getRecentGames(3),
     getUpcomingGames(3),
     getAnnouncements(),
+    getSponsors(),
   ])
 
   const announcements = allAnnouncements.slice(0, 3)
@@ -156,6 +158,11 @@ export default async function HomePage() {
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          {/* Sponsors */}
+          <div className="mt-12">
+            <SponsorBanner sponsors={sponsors} />
           </div>
         </section>
       </main>
