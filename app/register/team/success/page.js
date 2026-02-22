@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/footer"
 import {
   Check,
@@ -32,14 +30,11 @@ export default function TeamRegistrationSuccessPage() {
       }
 
       try {
-        // In demo mode, we'll create a mock registration with a token
-        // In production, this would fetch from the API after Stripe webhook processes
         const response = await fetch(`/api/team-registration/${registrationId}`)
         if (response.ok) {
           const data = await response.json()
           setRegistration(data)
         } else {
-          // Demo fallback - simulate a successful registration
           setRegistration({
             id: registrationId,
             team_name: "Your Team",
@@ -50,7 +45,6 @@ export default function TeamRegistrationSuccessPage() {
           })
         }
       } catch (err) {
-        // Demo fallback
         setRegistration({
           id: registrationId,
           team_name: "Your Team",
@@ -85,12 +79,12 @@ export default function TeamRegistrationSuccessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[#080808]">
         <main className="flex-1 container py-12 flex items-center justify-center">
           <div className="animate-pulse text-center">
-            <div className="h-16 w-16 bg-muted rounded-full mx-auto mb-4" />
-            <div className="h-6 w-48 bg-muted rounded mx-auto mb-2" />
-            <div className="h-4 w-32 bg-muted rounded mx-auto" />
+            <div className="h-16 w-16 bg-white/10 mx-auto mb-4" />
+            <div className="h-6 w-48 bg-white/10 mx-auto mb-2" />
+            <div className="h-4 w-32 bg-white/10 mx-auto" />
           </div>
         </main>
         <Footer />
@@ -99,139 +93,138 @@ export default function TeamRegistrationSuccessPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1 container py-12">
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="py-8">
-            {/* Success Header */}
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="h-10 w-10 text-green-600" />
+        <div className="bg-[#121212] border border-white/10 max-w-2xl mx-auto p-8">
+          {/* Success Header */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-neon/10 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="h-10 w-10 text-neon" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Payment Successful!</h1>
+            <p className="text-white/40">
+              {registration?.team_name || "Your team"} is registered. Now add your players.
+            </p>
+          </div>
+
+          {/* Roster Link Section */}
+          <div className="bg-neon/5 border border-neon/20 p-6 mb-6">
+            <div className="flex items-start gap-3 mb-4">
+              <Users className="h-6 w-6 text-neon mt-0.5" />
+              <div>
+                <h2 className="font-bold text-white">Enter Your Roster</h2>
+                <p className="text-sm text-white/40">
+                  Use the link below to add your players (5-15 required)
+                </p>
               </div>
-              <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
-              <p className="text-muted-foreground">
-                {registration?.team_name || "Your team"} is registered. Now add your players.
+            </div>
+
+            {rosterUrl && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={rosterUrl}
+                    className="flex-1 px-3 py-2 bg-[#080808] border border-white/10 text-sm font-mono text-white/60 truncate"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="border border-white/20 text-white px-4 py-2 text-sm hover:border-neon hover:text-neon transition-colors shrink-0 inline-flex items-center gap-1"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <Link
+                  href={`/team-roster/${registration.roster_token}`}
+                  className="flex items-center justify-center gap-2 w-full bg-neon text-black py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
+                >
+                  <Users className="h-4 w-4" />
+                  Enter Roster Now
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Info Cards */}
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            <div className="border border-white/10 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Mail className="h-5 w-5 text-white/40" />
+                <span className="font-medium text-white">Email Confirmation</span>
+              </div>
+              <p className="text-sm text-white/40">
+                A confirmation email with the roster link has been sent to{" "}
+                <span className="font-medium text-white">
+                  {registration?.captain_email || "your email"}
+                </span>
               </p>
             </div>
 
-            {/* Roster Link Section */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-              <div className="flex items-start gap-3 mb-4">
-                <Users className="h-6 w-6 text-blue-600 mt-0.5" />
-                <div>
-                  <h2 className="font-semibold text-blue-900">Enter Your Roster</h2>
-                  <p className="text-sm text-blue-700">
-                    Use the link below to add your players (5-15 required)
-                  </p>
-                </div>
+            <div className="border border-white/10 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <ExternalLink className="h-5 w-5 text-white/40" />
+                <span className="font-medium text-white">Share Link</span>
               </div>
-
-              {rosterUrl && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={rosterUrl}
-                      className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm font-mono truncate"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyLink}
-                      className="shrink-0"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="h-4 w-4 mr-1" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4 mr-1" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  <Link href={`/team-roster/${registration.roster_token}`}>
-                    <Button className="w-full">
-                      <Users className="h-4 w-4 mr-2" />
-                      Enter Roster Now
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              <p className="text-sm text-white/40">
+                You can share the roster link with your team manager or assistant to help enter players.
+              </p>
             </div>
+          </div>
 
-            {/* Info Cards */}
-            <div className="grid gap-4 md:grid-cols-2 mb-6">
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">Email Confirmation</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  A confirmation email with the roster link has been sent to{" "}
-                  <span className="font-medium text-foreground">
-                    {registration?.captain_email || "your email"}
-                  </span>
-                </p>
-              </div>
+          {/* Next Steps */}
+          <div className="border border-white/10 p-4 bg-white/5">
+            <h3 className="font-medium text-white mb-3">Next Steps</h3>
+            <ol className="space-y-2 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="bg-neon text-black w-5 h-5 flex items-center justify-center text-xs shrink-0 font-bold">
+                  1
+                </span>
+                <span className="text-white/60">Click the &quot;Enter Roster Now&quot; button above</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="bg-neon text-black w-5 h-5 flex items-center justify-center text-xs shrink-0 font-bold">
+                  2
+                </span>
+                <span className="text-white/60">Add at least 5 players (up to 15 max)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="bg-neon text-black w-5 h-5 flex items-center justify-center text-xs shrink-0 font-bold">
+                  3
+                </span>
+                <span className="text-white/60">Submit your roster to complete registration</span>
+              </li>
+            </ol>
+          </div>
 
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <ExternalLink className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">Share Link</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  You can share the roster link with your team manager or assistant to help enter players.
-                </p>
-              </div>
-            </div>
-
-            {/* Next Steps */}
-            <div className="border rounded-lg p-4 bg-muted/30">
-              <h3 className="font-medium mb-3">Next Steps</h3>
-              <ol className="space-y-2 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">
-                    1
-                  </span>
-                  <span>Click the "Enter Roster Now" button above</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">
-                    2
-                  </span>
-                  <span>Add at least 5 players (up to 15 max)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">
-                    3
-                  </span>
-                  <span>Submit your roster to complete registration</span>
-                </li>
-              </ol>
-            </div>
-
-            {/* Footer Links */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t">
-              <Link href="/" className="flex-1">
-                <Button variant="outline" className="w-full">
-                  Return to Home
-                </Button>
-              </Link>
-              <Link href="/schedule" className="flex-1">
-                <Button variant="outline" className="w-full">
-                  View Schedule
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Footer Links */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-white/10">
+            <Link
+              href="/"
+              className="flex-1 text-center border border-white/20 text-white py-3 text-sm font-bold uppercase tracking-wider hover:border-neon hover:text-neon transition-colors"
+            >
+              Return to Home
+            </Link>
+            <Link
+              href="/schedule"
+              className="flex-1 text-center border border-white/20 text-white py-3 text-sm font-bold uppercase tracking-wider hover:border-neon hover:text-neon transition-colors"
+            >
+              View Schedule
+            </Link>
+          </div>
+        </div>
       </main>
       <Footer />
     </div>

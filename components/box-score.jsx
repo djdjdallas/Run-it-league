@@ -63,17 +63,17 @@ export function BoxScore({ stats, team, players }) {
           <img
             src={team.logo_url}
             alt={team.name}
-            className="w-8 h-8 rounded-full object-cover"
+            className="w-8 h-8 object-cover"
           />
         ) : (
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+            className="w-8 h-8 flex items-center justify-center text-white text-xs font-bold"
             style={{ backgroundColor: team?.primary_color || "#666" }}
           >
             {team?.abbreviation || "?"}
           </div>
         )}
-        <h3 className="font-semibold text-lg">{team?.name || "Team"}</h3>
+        <h3 className="font-display text-lg text-white">{team?.name || "Team"}</h3>
       </div>
 
       <Table>
@@ -99,16 +99,16 @@ export function BoxScore({ stats, team, players }) {
               <TableCell>
                 <Link
                   href={`/players/${stat.player?.id}`}
-                  className="hover:underline"
+                  className="text-white/60 hover:text-neon transition-colors"
                 >
-                  <span className="text-muted-foreground mr-2">
+                  <span className="text-white/40 mr-2">
                     #{stat.player?.number}
                   </span>
                   {stat.player?.name}
                 </Link>
               </TableCell>
               <TableCell className="text-center">{stat.minutes}</TableCell>
-              <TableCell className="text-center font-bold">{stat.points}</TableCell>
+              <TableCell className="text-center text-white font-bold">{stat.points}</TableCell>
               <TableCell className="text-center hidden sm:table-cell">{stat.rebounds}</TableCell>
               <TableCell className="text-center hidden sm:table-cell">{stat.assists}</TableCell>
               <TableCell className="text-center hidden md:table-cell">{stat.steals}</TableCell>
@@ -117,7 +117,7 @@ export function BoxScore({ stats, team, players }) {
               <TableCell className="text-center hidden lg:table-cell">{stat.fouls}</TableCell>
               <TableCell className="text-center hidden xl:table-cell">
                 {stat.fg_made}-{stat.fg_attempted}
-                <span className="text-muted-foreground text-xs ml-1">
+                <span className="text-white/40 text-xs ml-1">
                   ({calculatePercentage(stat.fg_made, stat.fg_attempted)}%)
                 </span>
               </TableCell>
@@ -132,30 +132,30 @@ export function BoxScore({ stats, team, players }) {
         </TableBody>
         <TableFooter>
           <TableRow className="font-bold">
-            <TableCell>TOTALS</TableCell>
-            <TableCell className="text-center">{totals.minutes}</TableCell>
-            <TableCell className="text-center">{totals.points}</TableCell>
-            <TableCell className="text-center hidden sm:table-cell">{totals.rebounds}</TableCell>
-            <TableCell className="text-center hidden sm:table-cell">{totals.assists}</TableCell>
-            <TableCell className="text-center hidden md:table-cell">{totals.steals}</TableCell>
-            <TableCell className="text-center hidden md:table-cell">{totals.blocks}</TableCell>
-            <TableCell className="text-center hidden lg:table-cell">{totals.turnovers}</TableCell>
-            <TableCell className="text-center hidden lg:table-cell">{totals.fouls}</TableCell>
-            <TableCell className="text-center hidden xl:table-cell">
+            <TableCell className="text-white font-bold">TOTALS</TableCell>
+            <TableCell className="text-center text-white">{totals.minutes}</TableCell>
+            <TableCell className="text-center text-white">{totals.points}</TableCell>
+            <TableCell className="text-center text-white hidden sm:table-cell">{totals.rebounds}</TableCell>
+            <TableCell className="text-center text-white hidden sm:table-cell">{totals.assists}</TableCell>
+            <TableCell className="text-center text-white hidden md:table-cell">{totals.steals}</TableCell>
+            <TableCell className="text-center text-white hidden md:table-cell">{totals.blocks}</TableCell>
+            <TableCell className="text-center text-white hidden lg:table-cell">{totals.turnovers}</TableCell>
+            <TableCell className="text-center text-white hidden lg:table-cell">{totals.fouls}</TableCell>
+            <TableCell className="text-center text-white hidden xl:table-cell">
               {totals.fgMade}-{totals.fgAttempted}
-              <span className="text-muted-foreground text-xs ml-1">
+              <span className="text-white/40 text-xs ml-1">
                 ({calculatePercentage(totals.fgMade, totals.fgAttempted)}%)
               </span>
             </TableCell>
-            <TableCell className="text-center hidden xl:table-cell">
+            <TableCell className="text-center text-white hidden xl:table-cell">
               {totals.threeMade}-{totals.threeAttempted}
-              <span className="text-muted-foreground text-xs ml-1">
+              <span className="text-white/40 text-xs ml-1">
                 ({calculatePercentage(totals.threeMade, totals.threeAttempted)}%)
               </span>
             </TableCell>
-            <TableCell className="text-center hidden xl:table-cell">
+            <TableCell className="text-center text-white hidden xl:table-cell">
               {totals.ftMade}-{totals.ftAttempted}
-              <span className="text-muted-foreground text-xs ml-1">
+              <span className="text-white/40 text-xs ml-1">
                 ({calculatePercentage(totals.ftMade, totals.ftAttempted)}%)
               </span>
             </TableCell>

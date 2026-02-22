@@ -1,8 +1,5 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { BoxScore } from "@/components/box-score"
 import { Footer } from "@/components/footer"
 import { ArrowLeft, MapPin, Calendar as CalendarIcon } from "lucide-react"
@@ -32,6 +29,7 @@ export default async function GameDetailPage({ params }) {
   const awayTeam = game.away_team
 
   const isFinal = game.status === "final"
+  const isLive = game.status === "in_progress"
   const homeWon = isFinal && game.home_score > game.away_score
   const awayWon = isFinal && game.away_score > game.home_score
 
@@ -47,43 +45,42 @@ export default async function GameDetailPage({ params }) {
   const awayStats = gameStats.filter((ps) => ps.team_id === game.away_team_id)
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
         <div className="container py-8">
-          {/* Back Button */}
-          <Link href="/schedule">
-            <Button variant="ghost" size="sm" className="mb-6">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Schedule
-            </Button>
+          {/* Back Link */}
+          <Link
+            href="/schedule"
+            className="inline-flex items-center gap-2 text-white/40 hover:text-neon transition-colors text-sm mb-8"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Schedule
           </Link>
 
           {/* Game Header */}
-          <Card className="mb-8">
-            <CardContent className="p-6 md:p-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="bg-[#121212] border border-white/10 mb-8">
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2 text-sm text-white/40">
                   <CalendarIcon className="h-4 w-4" />
                   <span>{formatDate(game.game_date)}</span>
                   {game.status === "scheduled" && (
                     <span>at {formatTime(game.game_date)}</span>
                   )}
                 </div>
-                <Badge
-                  variant={
-                    isFinal
-                      ? "secondary"
-                      : game.status === "in_progress"
-                      ? "default"
-                      : "outline"
-                  }
-                >
-                  {game.status === "final"
-                    ? "Final"
-                    : game.status === "in_progress"
-                    ? "Live"
-                    : "Scheduled"}
-                </Badge>
+                {isFinal ? (
+                  <span className="bg-white/10 text-white text-xs font-bold uppercase px-3 py-1">
+                    Final
+                  </span>
+                ) : isLive ? (
+                  <span className="bg-neon text-black text-xs font-bold uppercase px-3 py-1 animate-pulse">
+                    Live
+                  </span>
+                ) : (
+                  <span className="border border-white/20 text-white/60 text-xs font-bold uppercase px-3 py-1">
+                    Scheduled
+                  </span>
+                )}
               </div>
 
               {/* Matchup */}
@@ -95,20 +92,20 @@ export default async function GameDetailPage({ params }) {
                       <img
                         src={awayTeam.logo_url}
                         alt={awayTeam.name}
-                        className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover mb-2"
+                        className="w-16 h-16 md:w-24 md:h-24 object-cover mb-2"
                       />
                     ) : (
                       <div
-                        className="w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white text-xl md:text-3xl font-bold mb-2"
+                        className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center text-white text-xl md:text-3xl font-bold mb-2"
                         style={{ backgroundColor: awayTeam?.primary_color || "#666" }}
                       >
                         {awayTeam?.abbreviation || "?"}
                       </div>
                     )}
-                    <span className={`font-semibold group-hover:underline ${awayWon ? "text-foreground" : "text-muted-foreground"}`}>
+                    <span className={`font-display text-lg md:text-2xl group-hover:text-neon transition-colors ${awayWon ? "text-white" : "text-white/40"}`}>
                       {awayTeam?.name || "Away Team"}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-white/40">
                       {awayTeam?.wins}-{awayTeam?.losses}
                     </span>
                   </div>
@@ -118,16 +115,16 @@ export default async function GameDetailPage({ params }) {
                 <div className="text-center">
                   {isFinal ? (
                     <div className="flex items-center justify-center gap-4">
-                      <span className={`text-4xl md:text-5xl font-bold ${awayWon ? "" : "text-muted-foreground"}`}>
+                      <span className={`font-display text-5xl md:text-6xl font-bold ${awayWon ? "text-neon neon-glow" : "text-white/40"}`}>
                         {game.away_score}
                       </span>
-                      <span className="text-2xl text-muted-foreground">-</span>
-                      <span className={`text-4xl md:text-5xl font-bold ${homeWon ? "" : "text-muted-foreground"}`}>
+                      <span className="text-2xl text-white/20">-</span>
+                      <span className={`font-display text-5xl md:text-6xl font-bold ${homeWon ? "text-neon neon-glow" : "text-white/40"}`}>
                         {game.home_score}
                       </span>
                     </div>
                   ) : (
-                    <div className="text-2xl font-bold text-muted-foreground">VS</div>
+                    <div className="font-display text-3xl text-neon neon-glow">VS</div>
                   )}
                 </div>
 
@@ -138,20 +135,20 @@ export default async function GameDetailPage({ params }) {
                       <img
                         src={homeTeam.logo_url}
                         alt={homeTeam.name}
-                        className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover mb-2"
+                        className="w-16 h-16 md:w-24 md:h-24 object-cover mb-2"
                       />
                     ) : (
                       <div
-                        className="w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center text-white text-xl md:text-3xl font-bold mb-2"
+                        className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center text-white text-xl md:text-3xl font-bold mb-2"
                         style={{ backgroundColor: homeTeam?.primary_color || "#666" }}
                       >
                         {homeTeam?.abbreviation || "?"}
                       </div>
                     )}
-                    <span className={`font-semibold group-hover:underline ${homeWon ? "text-foreground" : "text-muted-foreground"}`}>
+                    <span className={`font-display text-lg md:text-2xl group-hover:text-neon transition-colors ${homeWon ? "text-white" : "text-white/40"}`}>
                       {homeTeam?.name || "Home Team"}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-white/40">
                       {homeTeam?.wins}-{homeTeam?.losses}
                     </span>
                   </div>
@@ -159,59 +156,51 @@ export default async function GameDetailPage({ params }) {
               </div>
 
               {game.location && (
-                <div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
+                <div className="flex items-center justify-center gap-2 mt-6 text-sm text-white/40">
                   <MapPin className="h-4 w-4" />
                   <span>{game.location}</span>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Box Scores */}
           {isFinal && (homeStats.length > 0 || awayStats.length > 0) ? (
             <div className="space-y-8">
               {/* Away Team Box Score */}
               {awayStats.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <BoxScore
-                      stats={awayStats}
-                      team={awayTeam}
-                      players={allPlayers}
-                    />
-                  </CardContent>
-                </Card>
+                <div className="bg-[#121212] border border-white/10 p-6">
+                  <BoxScore
+                    stats={awayStats}
+                    team={awayTeam}
+                    players={allPlayers}
+                  />
+                </div>
               )}
 
               {/* Home Team Box Score */}
               {homeStats.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <BoxScore
-                      stats={homeStats}
-                      team={homeTeam}
-                      players={allPlayers}
-                    />
-                  </CardContent>
-                </Card>
+                <div className="bg-[#121212] border border-white/10 p-6">
+                  <BoxScore
+                    stats={homeStats}
+                    team={homeTeam}
+                    players={allPlayers}
+                  />
+                </div>
               )}
             </div>
           ) : isFinal ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">
-                  No box score available for this game.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-[#121212] border border-white/10 py-12 text-center">
+              <p className="text-white/40">
+                No box score available for this game.
+              </p>
+            </div>
           ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">
-                  Box score will be available after the game.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-[#121212] border border-white/10 py-12 text-center">
+              <p className="text-white/40">
+                Box score will be available after the game.
+              </p>
+            </div>
           )}
         </div>
       </main>

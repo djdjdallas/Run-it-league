@@ -49,9 +49,13 @@ export default async function HomePage() {
               priority
             />
 
-            <p className="text-white/40 text-sm uppercase tracking-[0.3em] mb-8">
+            <p className="text-white/40 text-sm uppercase tracking-[0.3em] mb-6">
               Spring 2026 Season
             </p>
+
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-white max-w-3xl mx-auto mb-6">
+              Las Vegas&apos; Most Competitive Adult Basketball League Featuring Former Pros
+            </h2>
 
             <p className="text-white/60 text-lg md:text-xl max-w-xl mx-auto mb-10">
               Where legends are made. Competitive basketball, organized.

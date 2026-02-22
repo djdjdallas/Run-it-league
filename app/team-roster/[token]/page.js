@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Footer } from "@/components/footer"
 import { ImageUpload } from "@/components/image-upload"
 import {
@@ -36,7 +33,6 @@ export default function RosterEntryPage() {
   const [error, setError] = useState(null)
   const [tokenError, setTokenError] = useState(null)
 
-  // Fetch registration and existing players
   useEffect(() => {
     async function fetchData() {
       try {
@@ -157,11 +153,11 @@ export default function RosterEntryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[#080808]">
         <main className="flex-1 container py-12 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading roster...</p>
+            <Loader2 className="h-12 w-12 animate-spin text-neon mx-auto mb-4" />
+            <p className="text-white/40">Loading roster...</p>
           </div>
         </main>
         <Footer />
@@ -171,20 +167,21 @@ export default function RosterEntryPage() {
 
   if (tokenError) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[#080808]">
         <main className="flex-1 container py-12">
-          <Card className="max-w-lg mx-auto">
-            <CardContent className="py-12 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <AlertCircle className="h-8 w-8 text-red-600" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2">Invalid Link</h2>
-              <p className="text-muted-foreground mb-6">{tokenError}</p>
-              <Button onClick={() => router.push("/register/team")}>
-                Register a New Team
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="bg-[#121212] border border-white/10 max-w-lg mx-auto p-8 text-center">
+            <div className="w-16 h-16 bg-neon/10 flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="h-8 w-8 text-neon" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Invalid Link</h2>
+            <p className="text-white/40 mb-6">{tokenError}</p>
+            <button
+              onClick={() => router.push("/register/team")}
+              className="bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
+            >
+              Register a New Team
+            </button>
+          </div>
         </main>
         <Footer />
       </div>
@@ -195,14 +192,14 @@ export default function RosterEntryPage() {
   const progressPercent = Math.min((players.length / MIN_PLAYERS) * 100, 100)
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
         {/* Header */}
-        <section className="bg-gradient-to-br from-green-500/10 via-background to-background py-8">
+        <section className="py-8">
           <div className="container">
             <div className="flex items-center gap-3 mb-2">
               <div
-                className="w-12 h-12 rounded-lg flex items-center justify-center font-bold"
+                className="w-12 h-12 flex items-center justify-center font-bold"
                 style={{
                   backgroundColor: registration?.primary_color || "#1E3A8A",
                   color: registration?.secondary_color || "#FFFFFF",
@@ -211,10 +208,10 @@ export default function RosterEntryPage() {
                 {registration?.team_name?.substring(0, 2).toUpperCase() || "TM"}
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">
+                <h1 className="text-2xl font-bold text-white tracking-tight">
                   {registration?.team_name || "Team"} Roster
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/40">
                   Add your players to complete registration
                 </p>
               </div>
@@ -222,58 +219,54 @@ export default function RosterEntryPage() {
           </div>
         </section>
 
-        <div className="container py-8">
+        <div className="container pb-16">
           <div className="max-w-2xl mx-auto space-y-6">
             {/* Progress */}
-            <Card>
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">
-                    {players.length} of {MIN_PLAYERS}-{MAX_PLAYERS} players
+            <div className="bg-[#121212] border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-white">
+                  {players.length} of {MIN_PLAYERS}-{MAX_PLAYERS} players
+                </span>
+                {canSubmit ? (
+                  <span className="text-sm text-neon flex items-center gap-1">
+                    <Check className="h-4 w-4" />
+                    Ready to submit
                   </span>
-                  {canSubmit ? (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <Check className="h-4 w-4" />
-                      Ready to submit
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Need {MIN_PLAYERS - players.length} more
-                    </span>
-                  )}
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      canSubmit ? "bg-green-500" : "bg-primary"
-                    }`}
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                ) : (
+                  <span className="text-sm text-white/40">
+                    Need {MIN_PLAYERS - players.length} more
+                  </span>
+                )}
+              </div>
+              <div className="h-2 bg-white/10 overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    canSubmit ? "bg-neon" : "bg-neon/60"
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
 
             {error && (
-              <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex items-center gap-2">
+              <div className="bg-neon/10 text-neon p-4 flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 {error}
               </div>
             )}
 
             {/* Add Player Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserPlus className="h-5 w-5" />
-                  Add Player
-                </CardTitle>
-                <CardDescription>
-                  Enter player names one at a time
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="bg-[#121212] border border-white/10 p-6">
+              <h2 className="font-bold text-white flex items-center gap-2 mb-1">
+                <UserPlus className="h-5 w-5" />
+                Add Player
+              </h2>
+              <p className="text-sm text-white/40 mb-4">
+                Enter player names one at a time
+              </p>
+              <div className="space-y-4">
                 <div className="flex gap-2">
-                  <Input
+                  <input
                     placeholder="Player name"
                     value={newPlayerName}
                     onChange={(e) => {
@@ -282,108 +275,101 @@ export default function RosterEntryPage() {
                     }}
                     onKeyPress={handleKeyPress}
                     disabled={players.length >= MAX_PLAYERS || addingPlayer}
+                    className="flex-1 px-4 py-2 bg-[#121212] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-neon transition-colors disabled:opacity-50"
                   />
-                  <Button
+                  <button
                     onClick={handleAddPlayer}
                     disabled={players.length >= MAX_PLAYERS || addingPlayer || !newPlayerName.trim()}
+                    className="bg-neon text-black px-4 py-2 hover:bg-neon/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {addingPlayer ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Plus className="h-4 w-4" />
                     )}
-                  </Button>
+                  </button>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Player Photo (optional)</p>
+                  <p className="text-sm text-white/40 mb-2">Player Photo (optional)</p>
                   <ImageUpload
                     folder="players"
                     currentUrl={newPlayerPhotoUrl || null}
                     onUpload={(url) => setNewPlayerPhotoUrl(url)}
                   />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Player List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Roster ({players.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {players.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>No players added yet</p>
-                    <p className="text-sm">Start adding your team members above</p>
-                  </div>
-                ) : (
-                  <ul className="divide-y">
-                    {players.map((player, index) => (
-                      <li
-                        key={player.id}
-                        className="flex items-center justify-between py-3"
+            <div className="bg-[#121212] border border-white/10 p-6">
+              <h2 className="font-bold text-white flex items-center gap-2 mb-4">
+                <Users className="h-5 w-5" />
+                Roster ({players.length})
+              </h2>
+              {players.length === 0 ? (
+                <div className="text-center py-8 text-white/40">
+                  <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No players added yet</p>
+                  <p className="text-sm">Start adding your team members above</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-white/10">
+                  {players.map((player, index) => (
+                    <li
+                      key={player.id}
+                      className="flex items-center justify-between py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        {player.photo_url ? (
+                          <img
+                            src={player.photo_url}
+                            alt={player.player_name}
+                            className="w-8 h-8 object-cover"
+                          />
+                        ) : (
+                          <span className="w-8 h-8 bg-white/10 flex items-center justify-center text-sm">
+                            <User className="h-4 w-4 text-white/40" />
+                          </span>
+                        )}
+                        <span className="font-medium text-white">{player.player_name}</span>
+                      </div>
+                      <button
+                        onClick={() => handleRemovePlayer(player.id)}
+                        className="text-white/40 hover:text-neon transition-colors p-2"
                       >
-                        <div className="flex items-center gap-3">
-                          {player.photo_url ? (
-                            <img
-                              src={player.photo_url}
-                              alt={player.player_name}
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <span className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                            </span>
-                          )}
-                          <span className="font-medium">{player.player_name}</span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemovePlayer(player.id)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             {/* Submit Button */}
-            <Card>
-              <CardContent className="py-4">
-                <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={handleSubmitRoster}
-                  disabled={!canSubmit || submitting}
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Submit Roster ({players.length} players)
-                    </>
-                  )}
-                </Button>
-                {!canSubmit && (
-                  <p className="text-sm text-center text-muted-foreground mt-2">
-                    Add at least {MIN_PLAYERS - players.length} more player{MIN_PLAYERS - players.length !== 1 ? "s" : ""} to submit
-                  </p>
+            <div className="bg-[#121212] border border-white/10 p-4">
+              <button
+                onClick={handleSubmitRoster}
+                disabled={!canSubmit || submitting}
+                className="w-full bg-neon text-black py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Submit Roster ({players.length} players)
+                  </>
                 )}
-              </CardContent>
-            </Card>
+              </button>
+              {!canSubmit && (
+                <p className="text-sm text-center text-white/40 mt-2">
+                  Add at least {MIN_PLAYERS - players.length} more player{MIN_PLAYERS - players.length !== 1 ? "s" : ""} to submit
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </main>

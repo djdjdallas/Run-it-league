@@ -1,9 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { ImageLightbox } from "@/components/image-lightbox"
@@ -40,33 +37,35 @@ export default function GalleryClient({ photos, sponsors }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-purple-500/10 via-background to-background py-8">
+        {/* Header */}
+        <section className="py-16 md:py-24">
           <div className="container">
-            <div className="flex items-center gap-3 mb-4">
-              <Camera className="h-8 w-8 text-purple-500" />
-              <h1 className="text-3xl font-bold tracking-tight">Photo Gallery</h1>
-            </div>
-            <p className="text-muted-foreground">
-              Highlights, events, and moments from the league
+            <p className="text-neon text-xs font-bold uppercase tracking-[0.3em] mb-2">
+              Media
             </p>
+            <h1 className="font-display text-4xl md:text-5xl text-white">
+              THE GALLERY
+            </h1>
           </div>
         </section>
 
-        <div className="container py-8">
+        <div className="container pb-16">
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2 mb-8">
             {categories.map((cat) => (
-              <Button
+              <button
                 key={cat.id}
-                variant={selectedCategory === cat.id ? "default" : "outline"}
-                size="sm"
                 onClick={() => setSelectedCategory(cat.id)}
+                className={`px-6 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+                  selectedCategory === cat.id
+                    ? "bg-neon text-black"
+                    : "border border-white/20 text-white/60 hover:border-neon hover:text-neon"
+                }`}
               >
                 {cat.label}
-              </Button>
+              </button>
             ))}
           </div>
 
@@ -76,7 +75,7 @@ export default function GalleryClient({ photos, sponsors }) {
               {sortedPhotos.map((photo, index) => (
                 <div
                   key={photo.id}
-                  className="group relative aspect-square overflow-hidden rounded-lg cursor-pointer bg-muted"
+                  className="group relative aspect-square overflow-hidden cursor-pointer bg-[#121212]"
                   onClick={() => openLightbox(index)}
                 >
                   <img
@@ -102,32 +101,30 @@ export default function GalleryClient({ photos, sponsors }) {
                   {/* Featured Badge */}
                   {photo.is_featured && (
                     <div className="absolute top-2 right-2">
-                      <Badge className="bg-yellow-500 hover:bg-yellow-600">
-                        <Star className="h-3 w-3 mr-1 fill-current" />
+                      <span className="bg-neon text-black text-xs font-bold uppercase px-2 py-1 inline-flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-current" />
                         Featured
-                      </Badge>
+                      </span>
                     </div>
                   )}
 
                   {/* Category Badge */}
                   <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="text-xs capitalize">
+                    <span className="bg-white/10 text-white/60 text-xs capitalize px-2 py-1">
                       {photo.category}
-                    </Badge>
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className="py-20 text-center">
-                <Camera className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-xl font-semibold mb-2">No Photos Yet</h2>
-                <p className="text-muted-foreground">
-                  Check back later for photos from games and events
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-[#121212] border border-white/10 py-20 text-center">
+              <Camera className="h-16 w-16 mx-auto mb-4 text-white/20" />
+              <h2 className="text-xl font-bold text-white mb-2">No Photos Yet</h2>
+              <p className="text-white/40">
+                Check back later for photos from games and events
+              </p>
+            </div>
           )}
 
           {/* Sponsor Banner */}

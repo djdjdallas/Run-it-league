@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -8,7 +7,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Footer } from "@/components/footer"
 import { getStatLeaders } from "@/lib/queries"
 
@@ -26,6 +24,14 @@ export default async function StatsPage() {
     getStatLeaders("blocks", 10),
   ])
 
+  const tabs = [
+    { id: "points", label: "Points", leaders: pointsLeaders, statName: "PPG", title: "Points Per Game Leaders" },
+    { id: "rebounds", label: "Rebounds", leaders: reboundsLeaders, statName: "RPG", title: "Rebounds Per Game Leaders" },
+    { id: "assists", label: "Assists", leaders: assistsLeaders, statName: "APG", title: "Assists Per Game Leaders" },
+    { id: "steals", label: "Steals", leaders: stealsLeaders, statName: "SPG", title: "Steals Per Game Leaders" },
+    { id: "blocks", label: "Blocks", leaders: blocksLeaders, statName: "BPG", title: "Blocks Per Game Leaders" },
+  ]
+
   const StatTable = ({ leaders, statName }) => (
     <Table>
       <TableHeader>
@@ -42,11 +48,13 @@ export default async function StatsPage() {
           const team = leader.player?.team
           return (
             <TableRow key={leader.player_id}>
-              <TableCell className="font-medium">{index + 1}</TableCell>
+              <TableCell className={`font-medium ${index === 0 ? "text-neon" : "text-white/60"}`}>
+                {index + 1}
+              </TableCell>
               <TableCell>
                 <Link
                   href={`/players/${leader.player?.id}`}
-                  className="hover:underline font-medium"
+                  className="text-white hover:text-neon transition-colors font-medium"
                 >
                   {leader.player?.name}
                 </Link>
@@ -54,19 +62,19 @@ export default async function StatsPage() {
               <TableCell>
                 <Link
                   href={`/teams/${team?.id}`}
-                  className="hover:underline text-muted-foreground"
+                  className="text-white/40 hover:text-neon transition-colors"
                 >
                   {team?.abbreviation || "-"}
                 </Link>
               </TableCell>
               <TableCell className="text-center">{leader.games}</TableCell>
-              <TableCell className="text-center font-bold">{leader.avg}</TableCell>
+              <TableCell className="text-center text-white font-bold">{leader.avg}</TableCell>
             </TableRow>
           )
         })}
         {leaders.length === 0 && (
           <TableRow>
-            <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+            <TableCell colSpan={5} className="text-center text-white/40 py-8">
               No stats recorded yet.
             </TableCell>
           </TableRow>
@@ -75,182 +83,78 @@ export default async function StatsPage() {
     </Table>
   )
 
+  // Server component — tabs rendered as details/summary for no-JS support,
+  // but we'll render all tabs and use CSS :target or just show all sections
+  // Since this is a server component, we render all tabs visible with anchors
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
-        <div className="container py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Stats Leaders</h1>
-            <p className="text-muted-foreground mt-2">
-              League leaders in all major statistical categories
+        {/* Header */}
+        <section className="py-16 md:py-24">
+          <div className="container">
+            <p className="text-neon text-xs font-bold uppercase tracking-[0.3em] mb-2">
+              Statistics
             </p>
+            <h1 className="font-display text-4xl md:text-5xl text-white">
+              STAT LEADERS
+            </h1>
+          </div>
+        </section>
+
+        <div className="container pb-16">
+          {/* Top 3 Quick View */}
+          <div className="grid gap-6 md:grid-cols-3 mb-12">
+            {[
+              { leader: pointsLeaders[0], label: "PPG", title: "Top Scorer" },
+              { leader: reboundsLeaders[0], label: "RPG", title: "Top Rebounder" },
+              { leader: assistsLeaders[0], label: "APG", title: "Top Playmaker" },
+            ].map(({ leader, label, title }) => (
+              <div key={title} className="bg-[#121212] border border-white/10 p-6">
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-4">{title}</p>
+                {leader ? (
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 flex items-center justify-center text-white font-bold"
+                      style={{
+                        backgroundColor: leader.player?.team?.primary_color || "#666",
+                      }}
+                    >
+                      {leader.player?.number || "?"}
+                    </div>
+                    <div>
+                      <Link
+                        href={`/players/${leader.player?.id}`}
+                        className="font-bold text-white hover:text-neon transition-colors"
+                      >
+                        {leader.player?.name}
+                      </Link>
+                      <div className="text-3xl font-bold text-neon">
+                        {leader.avg} <span className="text-white/40 text-xs uppercase">{label}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-white/40">No data</p>
+                )}
+              </div>
+            ))}
           </div>
 
-          <Tabs defaultValue="points" className="space-y-6">
-            <TabsList className="flex-wrap h-auto">
-              <TabsTrigger value="points">Points</TabsTrigger>
-              <TabsTrigger value="rebounds">Rebounds</TabsTrigger>
-              <TabsTrigger value="assists">Assists</TabsTrigger>
-              <TabsTrigger value="steals">Steals</TabsTrigger>
-              <TabsTrigger value="blocks">Blocks</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="points">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Points Per Game Leaders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <StatTable leaders={pointsLeaders} statName="PPG" />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="rebounds">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rebounds Per Game Leaders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <StatTable leaders={reboundsLeaders} statName="RPG" />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="assists">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Assists Per Game Leaders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <StatTable leaders={assistsLeaders} statName="APG" />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="steals">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Steals Per Game Leaders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <StatTable leaders={stealsLeaders} statName="SPG" />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="blocks">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Blocks Per Game Leaders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <StatTable leaders={blocksLeaders} statName="BPG" />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          {/* Top 3 Quick View */}
-          <div className="grid gap-6 md:grid-cols-3 mt-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Top Scorer</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pointsLeaders[0] ? (
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                      style={{
-                        backgroundColor: pointsLeaders[0].player?.team?.primary_color || "#666",
-                      }}
-                    >
-                      {pointsLeaders[0].player?.number || "?"}
-                    </div>
-                    <div>
-                      <Link
-                        href={`/players/${pointsLeaders[0].player?.id}`}
-                        className="font-semibold hover:underline"
-                      >
-                        {pointsLeaders[0].player?.name}
-                      </Link>
-                      <div className="text-2xl font-bold">
-                        {pointsLeaders[0].avg} PPG
-                      </div>
-                    </div>
+          {/* Stat Tables */}
+          <div className="space-y-12">
+            {tabs.map((tab) => (
+              <div key={tab.id}>
+                <div className="bg-[#121212] border border-white/10">
+                  <div className="px-6 py-4 border-b border-white/10">
+                    <h2 className="font-display text-xl text-white">{tab.title}</h2>
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">No data</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Top Rebounder</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {reboundsLeaders[0] ? (
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                      style={{
-                        backgroundColor: reboundsLeaders[0].player?.team?.primary_color || "#666",
-                      }}
-                    >
-                      {reboundsLeaders[0].player?.number || "?"}
-                    </div>
-                    <div>
-                      <Link
-                        href={`/players/${reboundsLeaders[0].player?.id}`}
-                        className="font-semibold hover:underline"
-                      >
-                        {reboundsLeaders[0].player?.name}
-                      </Link>
-                      <div className="text-2xl font-bold">
-                        {reboundsLeaders[0].avg} RPG
-                      </div>
-                    </div>
+                  <div className="p-4">
+                    <StatTable leaders={tab.leaders} statName={tab.statName} />
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">No data</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Top Playmaker</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {assistsLeaders[0] ? (
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                      style={{
-                        backgroundColor: assistsLeaders[0].player?.team?.primary_color || "#666",
-                      }}
-                    >
-                      {assistsLeaders[0].player?.number || "?"}
-                    </div>
-                    <div>
-                      <Link
-                        href={`/players/${assistsLeaders[0].player?.id}`}
-                        className="font-semibold hover:underline"
-                      >
-                        {assistsLeaders[0].player?.name}
-                      </Link>
-                      <div className="text-2xl font-bold">
-                        {assistsLeaders[0].avg} APG
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No data</p>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </main>

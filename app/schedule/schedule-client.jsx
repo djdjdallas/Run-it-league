@@ -1,9 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select } from "@/components/ui/select"
 import { GameCard } from "@/components/game-card"
 import { Footer } from "@/components/footer"
@@ -13,6 +10,7 @@ import { formatDate } from "@/lib/utils"
 export default function ScheduleClient({ games, teams }) {
   const [teamFilter, setTeamFilter] = useState("all")
   const [view, setView] = useState("list")
+  const [activeTab, setActiveTab] = useState("upcoming")
 
   // Filter games by team
   const filteredGames = games.filter((game) => {
@@ -37,23 +35,30 @@ export default function ScheduleClient({ games, teams }) {
     return acc
   }, {})
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1">
-        <div className="container py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Schedule</h1>
-            <p className="text-muted-foreground mt-2">
-              View all games in the season
-            </p>
-          </div>
+  const displayGames = activeTab === "upcoming" ? upcomingGames : pastGames
 
+  return (
+    <div className="min-h-screen flex flex-col bg-[#080808]">
+      <main className="flex-1">
+        {/* Header */}
+        <section className="py-16 md:py-24">
+          <div className="container">
+            <p className="text-neon text-xs font-bold uppercase tracking-[0.3em] mb-2">
+              Schedule
+            </p>
+            <h1 className="font-display text-4xl md:text-5xl text-white">
+              THE SCHEDULE
+            </h1>
+          </div>
+        </section>
+
+        <div className="container pb-16">
           {/* Filters & View Toggle */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Select
               value={teamFilter}
               onChange={(e) => setTeamFilter(e.target.value)}
-              className="w-full sm:w-48"
+              className="w-full sm:w-48 bg-[#121212] border-white/10 text-white"
             >
               <option value="all">All Teams</option>
               {teams.map((team) => (
@@ -66,85 +71,86 @@ export default function ScheduleClient({ games, teams }) {
             <div className="flex-1" />
 
             <div className="flex gap-2">
-              <Button
-                variant={view === "list" ? "default" : "outline"}
-                size="sm"
+              <button
                 onClick={() => setView("list")}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+                  view === "list"
+                    ? "bg-neon text-black"
+                    : "border border-white/20 text-white/40 hover:text-white hover:border-white/40"
+                }`}
               >
-                <List className="h-4 w-4 mr-2" />
+                <List className="h-4 w-4" />
                 List
-              </Button>
-              <Button
-                variant={view === "calendar" ? "default" : "outline"}
-                size="sm"
+              </button>
+              <button
                 onClick={() => setView("calendar")}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+                  view === "calendar"
+                    ? "bg-neon text-black"
+                    : "border border-white/20 text-white/40 hover:text-white hover:border-white/40"
+                }`}
               >
-                <Calendar className="h-4 w-4 mr-2" />
+                <Calendar className="h-4 w-4" />
                 Calendar
-              </Button>
+              </button>
             </div>
           </div>
 
           {view === "list" ? (
-            <Tabs defaultValue="upcoming" className="space-y-6">
-              <TabsList>
-                <TabsTrigger value="upcoming">
+            <div className="space-y-6">
+              {/* Tabs */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab("upcoming")}
+                  className={`px-6 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+                    activeTab === "upcoming"
+                      ? "bg-neon text-black"
+                      : "text-white/40 hover:text-white"
+                  }`}
+                >
                   Upcoming ({upcomingGames.length})
-                </TabsTrigger>
-                <TabsTrigger value="results">
+                </button>
+                <button
+                  onClick={() => setActiveTab("results")}
+                  className={`px-6 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+                    activeTab === "results"
+                      ? "bg-neon text-black"
+                      : "text-white/40 hover:text-white"
+                  }`}
+                >
                   Results ({pastGames.length})
-                </TabsTrigger>
-              </TabsList>
+                </button>
+              </div>
 
-              <TabsContent value="upcoming">
-                {upcomingGames.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {upcomingGames.map((game) => (
-                      <GameCard key={game.id} game={game} />
-                    ))}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <p className="text-muted-foreground">
-                        No upcoming games scheduled.
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="results">
-                {pastGames.length > 0 ? (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {pastGames.map((game) => (
-                      <GameCard key={game.id} game={game} />
-                    ))}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <p className="text-muted-foreground">
-                        No games played yet.
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            </Tabs>
+              {displayGames.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {displayGames.map((game) => (
+                    <GameCard key={game.id} game={game} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#121212] border border-white/10 py-12 text-center">
+                  <p className="text-white/40">
+                    {activeTab === "upcoming"
+                      ? "No upcoming games scheduled."
+                      : "No games played yet."}
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
             // Calendar View
             <div className="space-y-6">
               {Object.keys(gamesByDate)
                 .sort((a, b) => new Date(a) - new Date(b))
                 .map((dateKey) => (
-                  <Card key={dateKey}>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">
+                  <div key={dateKey} className="bg-[#121212] border border-white/10">
+                    <div className="px-6 py-4 border-b border-white/10">
+                      <h3 className="font-display text-lg text-white">
                         {formatDate(dateKey)}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                      </h3>
+                    </div>
+                    <div className="p-4">
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {gamesByDate[dateKey].map((game) => (
                           <GameCard
@@ -154,18 +160,16 @@ export default function ScheduleClient({ games, teams }) {
                           />
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
 
               {Object.keys(gamesByDate).length === 0 && (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">
-                      No games found.
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="bg-[#121212] border border-white/10 py-12 text-center">
+                  <p className="text-white/40">
+                    No games found.
+                  </p>
+                </div>
               )}
             </div>
           )}

@@ -2,10 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { ImageUpload } from "@/components/image-upload"
@@ -84,7 +80,6 @@ export default function TeamRegisterPage() {
     setError(null)
 
     try {
-      // 1. Create team registration record
       const regResponse = await fetch("/api/team-registration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,7 +99,6 @@ export default function TeamRegisterPage() {
         throw new Error(regData.error || "Failed to create registration")
       }
 
-      // 2. Create Stripe checkout session
       const checkoutResponse = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,7 +114,6 @@ export default function TeamRegisterPage() {
         throw new Error(checkoutData.error || "Failed to create checkout")
       }
 
-      // 3. Redirect to Stripe checkout
       if (checkoutData.url) {
         window.location.href = checkoutData.url
       }
@@ -132,403 +125,403 @@ export default function TeamRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-blue-500/10 via-background to-background py-8">
+        {/* Header */}
+        <section className="py-12">
           <div className="container">
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="h-8 w-8 text-blue-500" />
-              <h1 className="text-3xl font-bold tracking-tight">
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="h-8 w-8 text-neon" />
+              <h1 className="text-3xl font-bold text-white tracking-tight">
                 Team Registration
               </h1>
             </div>
-            <p className="text-muted-foreground">
+            <p className="text-white/40">
               Register your team for the Run It League - ${teamRegistrationFee} per team
             </p>
           </div>
         </section>
 
-        <div className="container py-8">
+        <div className="container pb-16">
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Registration Form */}
             <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-4">
-                    {/* Progress Steps */}
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3].map((s) => (
-                        <div key={s} className="flex items-center">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                              step >= s
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {step > s ? <Check className="h-4 w-4" /> : s}
-                          </div>
-                          {s < 3 && (
-                            <div
-                              className={`w-12 h-1 mx-2 ${
-                                step > s ? "bg-primary" : "bg-muted"
-                              }`}
-                            />
-                          )}
-                        </div>
-                      ))}
+              <div className="bg-[#121212] border border-white/10 p-6 md:p-8">
+                {/* Progress Steps */}
+                <div className="flex items-center gap-2 mb-6">
+                  {[1, 2, 3].map((s) => (
+                    <div key={s} className="flex items-center">
+                      <div
+                        className={`w-8 h-8 flex items-center justify-center text-sm font-medium ${
+                          step >= s
+                            ? "bg-neon text-black"
+                            : "bg-white/10 text-white/40"
+                        }`}
+                      >
+                        {step > s ? <Check className="h-4 w-4" /> : s}
+                      </div>
+                      {s < 3 && (
+                        <div
+                          className={`w-12 h-0.5 mx-2 ${
+                            step > s ? "bg-neon" : "bg-white/10"
+                          }`}
+                        />
+                      )}
                     </div>
+                  ))}
+                </div>
+
+                <h2 className="text-xl font-bold text-white mb-1">
+                  {step === 1 && "Team Information"}
+                  {step === 2 && "Captain Information"}
+                  {step === 3 && "Review & Payment"}
+                </h2>
+                <p className="text-white/40 text-sm mb-6">
+                  {step === 1 && "Tell us about your team"}
+                  {step === 2 && "Enter the team captain's details"}
+                  {step === 3 && "Confirm and pay to complete registration"}
+                </p>
+
+                {error && (
+                  <div className="bg-neon/10 text-neon p-4 mb-6 flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    {error}
                   </div>
-                  <CardTitle>
-                    {step === 1 && "Team Information"}
-                    {step === 2 && "Captain Information"}
-                    {step === 3 && "Review & Payment"}
-                  </CardTitle>
-                  <CardDescription>
-                    {step === 1 && "Tell us about your team"}
-                    {step === 2 && "Enter the team captain's details"}
-                    {step === 3 && "Confirm and pay to complete registration"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {error && (
-                    <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5" />
-                      {error}
+                )}
+
+                {/* Step 1: Team Info */}
+                {step === 1 && (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label htmlFor="team_name" className="text-sm font-medium text-white">
+                        Team Name *
+                      </label>
+                      <input
+                        id="team_name"
+                        value={formData.team_name}
+                        onChange={(e) => updateField("team_name", e.target.value)}
+                        placeholder="e.g., Thunder Hawks"
+                        className="w-full px-4 py-2 bg-[#121212] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-neon transition-colors"
+                      />
                     </div>
-                  )}
 
-                  {/* Step 1: Team Info */}
-                  {step === 1 && (
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="team_name">Team Name *</Label>
-                        <Input
-                          id="team_name"
-                          value={formData.team_name}
-                          onChange={(e) => updateField("team_name", e.target.value)}
-                          placeholder="e.g., Thunder Hawks"
-                        />
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label className="flex items-center gap-2">
-                          <Palette className="h-4 w-4" />
-                          Team Colors
-                        </Label>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="primary_color" className="text-sm text-muted-foreground">
-                              Primary Color
-                            </Label>
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="color"
-                                id="primary_color"
-                                value={formData.primary_color}
-                                onChange={(e) => updateField("primary_color", e.target.value)}
-                                className="w-12 h-10 rounded border cursor-pointer"
-                              />
-                              <Input
-                                value={formData.primary_color}
-                                onChange={(e) => updateField("primary_color", e.target.value)}
-                                className="font-mono"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="secondary_color" className="text-sm text-muted-foreground">
-                              Secondary Color
-                            </Label>
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="color"
-                                id="secondary_color"
-                                value={formData.secondary_color}
-                                onChange={(e) => updateField("secondary_color", e.target.value)}
-                                className="w-12 h-10 rounded border cursor-pointer"
-                              />
-                              <Input
-                                value={formData.secondary_color}
-                                onChange={(e) => updateField("secondary_color", e.target.value)}
-                                className="font-mono"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        {/* Color Preview */}
-                        <div className="p-4 rounded-lg border">
-                          <p className="text-sm text-muted-foreground mb-2">Preview:</p>
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-16 h-16 rounded-lg flex items-center justify-center font-bold text-lg"
-                              style={{
-                                backgroundColor: formData.primary_color,
-                                color: formData.secondary_color,
-                              }}
-                            >
-                              {formData.team_name ? formData.team_name.substring(0, 3).toUpperCase() : "ABC"}
-                            </div>
-                            <div>
-                              <p className="font-medium">{formData.team_name || "Your Team"}</p>
-                              <p className="text-sm text-muted-foreground">Team badge preview</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Team Logo (optional)</Label>
-                        <ImageUpload
-                          folder="teams"
-                          currentUrl={formData.logo_url || null}
-                          onUpload={(url) => updateField("logo_url", url)}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 2: Captain Info */}
-                  {step === 2 && (
                     <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="captain_name">Captain Name *</Label>
-                        <Input
-                          id="captain_name"
-                          value={formData.captain_name}
-                          onChange={(e) => updateField("captain_name", e.target.value)}
-                          placeholder="John Smith"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="captain_email">Captain Email *</Label>
-                        <Input
-                          id="captain_email"
-                          type="email"
-                          value={formData.captain_email}
-                          onChange={(e) => updateField("captain_email", e.target.value)}
-                          placeholder="john@example.com"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          The roster entry link will be sent to this email
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="captain_phone">Captain Phone</Label>
-                        <Input
-                          id="captain_phone"
-                          type="tel"
-                          value={formData.captain_phone}
-                          onChange={(e) => updateField("captain_phone", e.target.value)}
-                          placeholder="(555) 123-4567"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 3: Review & Payment */}
-                  {step === 3 && (
-                    <div className="space-y-6">
-                      <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                        <h4 className="font-medium">Registration Summary</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <span className="text-muted-foreground">Team Name:</span>
-                          <span className="font-medium">{formData.team_name}</span>
-                          <span className="text-muted-foreground">Captain:</span>
-                          <span>{formData.captain_name}</span>
-                          <span className="text-muted-foreground">Email:</span>
-                          <span>{formData.captain_email}</span>
-                          {formData.captain_phone && (
-                            <>
-                              <span className="text-muted-foreground">Phone:</span>
-                              <span>{formData.captain_phone}</span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 pt-2">
-                          <span className="text-muted-foreground text-sm">Team Colors:</span>
-                          <div
-                            className="w-6 h-6 rounded border"
-                            style={{ backgroundColor: formData.primary_color }}
-                          />
-                          <div
-                            className="w-6 h-6 rounded border"
-                            style={{ backgroundColor: formData.secondary_color }}
-                          />
-                        </div>
-                        {formData.logo_url && (
-                          <div className="pt-2">
-                            <span className="text-muted-foreground text-sm">Team Logo:</span>
-                            <img
-                              src={formData.logo_url}
-                              alt="Team logo"
-                              className="w-20 h-20 object-cover rounded-lg border mt-1"
+                      <label className="flex items-center gap-2 text-sm font-medium text-white">
+                        <Palette className="h-4 w-4" />
+                        Team Colors
+                      </label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="primary_color" className="text-sm text-white/40">
+                            Primary Color
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              id="primary_color"
+                              value={formData.primary_color}
+                              onChange={(e) => updateField("primary_color", e.target.value)}
+                              className="w-12 h-10 border border-white/10 cursor-pointer bg-transparent"
+                            />
+                            <input
+                              value={formData.primary_color}
+                              onChange={(e) => updateField("primary_color", e.target.value)}
+                              className="flex-1 px-4 py-2 bg-[#121212] border border-white/10 text-white font-mono focus:outline-none focus:border-neon transition-colors"
                             />
                           </div>
-                        )}
-                      </div>
-
-                      <div className="border rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-medium">Team Registration Fee</span>
-                          <span className="text-xl font-bold">
-                            ${teamRegistrationFee.toFixed(2)}
-                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Covers team entry for the entire season. After payment, you'll receive a link to enter your roster (5-15 players).
-                        </p>
+                        <div className="space-y-2">
+                          <label htmlFor="secondary_color" className="text-sm text-white/40">
+                            Secondary Color
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              id="secondary_color"
+                              value={formData.secondary_color}
+                              onChange={(e) => updateField("secondary_color", e.target.value)}
+                              className="w-12 h-10 border border-white/10 cursor-pointer bg-transparent"
+                            />
+                            <input
+                              value={formData.secondary_color}
+                              onChange={(e) => updateField("secondary_color", e.target.value)}
+                              className="flex-1 px-4 py-2 bg-[#121212] border border-white/10 text-white font-mono focus:outline-none focus:border-neon transition-colors"
+                            />
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">Next Steps After Payment</h4>
-                        <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                          <li>You'll be redirected to a success page with a roster entry link</li>
-                          <li>Use that link to add your players (5-15 names required)</li>
-                          <li>Once submitted, your team will be officially registered</li>
-                        </ol>
-                      </div>
-
-                      <div className="border-t pt-4">
-                        <label className="flex items-start gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.waiver_signed}
-                            onChange={(e) => updateField("waiver_signed", e.target.checked)}
-                            className="mt-1"
-                          />
-                          <span className="text-sm">
-                            I agree to the{" "}
-                            <a href="#" className="text-primary hover:underline">
-                              league rules
-                            </a>{" "}
-                            and{" "}
-                            <a href="#" className="text-primary hover:underline">
-                              terms of service
-                            </a>
-                            . I understand that I am responsible for my team's conduct.
-                          </span>
-                        </label>
+                      {/* Color Preview */}
+                      <div className="p-4 border border-white/10">
+                        <p className="text-sm text-white/40 mb-2">Preview:</p>
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-16 h-16 flex items-center justify-center font-bold text-lg"
+                            style={{
+                              backgroundColor: formData.primary_color,
+                              color: formData.secondary_color,
+                            }}
+                          >
+                            {formData.team_name ? formData.team_name.substring(0, 3).toUpperCase() : "ABC"}
+                          </div>
+                          <div>
+                            <p className="font-medium text-white">{formData.team_name || "Your Team"}</p>
+                            <p className="text-sm text-white/40">Team badge preview</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  {/* Navigation Buttons */}
-                  <div className="flex justify-between mt-8">
-                    {step > 1 ? (
-                      <Button
-                        variant="outline"
-                        onClick={() => setStep((s) => s - 1)}
-                      >
-                        Back
-                      </Button>
-                    ) : (
-                      <div />
-                    )}
-                    {step < 3 ? (
-                      <Button onClick={handleNextStep}>Continue</Button>
-                    ) : (
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={loading || !formData.waiver_signed}
-                      >
-                        {loading ? (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Team Logo (optional)</label>
+                      <ImageUpload
+                        folder="teams"
+                        currentUrl={formData.logo_url || null}
+                        onUpload={(url) => updateField("logo_url", url)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Captain Info */}
+                {step === 2 && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="captain_name" className="text-sm font-medium text-white">
+                        Captain Name *
+                      </label>
+                      <input
+                        id="captain_name"
+                        value={formData.captain_name}
+                        onChange={(e) => updateField("captain_name", e.target.value)}
+                        placeholder="John Smith"
+                        className="w-full px-4 py-2 bg-[#121212] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-neon transition-colors"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="captain_email" className="text-sm font-medium text-white">
+                        Captain Email *
+                      </label>
+                      <input
+                        id="captain_email"
+                        type="email"
+                        value={formData.captain_email}
+                        onChange={(e) => updateField("captain_email", e.target.value)}
+                        placeholder="john@example.com"
+                        className="w-full px-4 py-2 bg-[#121212] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-neon transition-colors"
+                      />
+                      <p className="text-xs text-white/30">
+                        The roster entry link will be sent to this email
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="captain_phone" className="text-sm font-medium text-white">
+                        Captain Phone
+                      </label>
+                      <input
+                        id="captain_phone"
+                        type="tel"
+                        value={formData.captain_phone}
+                        onChange={(e) => updateField("captain_phone", e.target.value)}
+                        placeholder="(555) 123-4567"
+                        className="w-full px-4 py-2 bg-[#121212] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-neon transition-colors"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Review & Payment */}
+                {step === 3 && (
+                  <div className="space-y-6">
+                    <div className="bg-white/5 p-4 space-y-3">
+                      <h4 className="font-medium text-white">Registration Summary</h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <span className="text-white/40">Team Name:</span>
+                        <span className="font-medium text-white">{formData.team_name}</span>
+                        <span className="text-white/40">Captain:</span>
+                        <span className="text-white/60">{formData.captain_name}</span>
+                        <span className="text-white/40">Email:</span>
+                        <span className="text-white/60">{formData.captain_email}</span>
+                        {formData.captain_phone && (
                           <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <CreditCard className="h-4 w-4 mr-2" />
-                            Pay ${teamRegistrationFee}
+                            <span className="text-white/40">Phone:</span>
+                            <span className="text-white/60">{formData.captain_phone}</span>
                           </>
                         )}
-                      </Button>
-                    )}
+                      </div>
+                      <div className="flex items-center gap-2 pt-2">
+                        <span className="text-white/40 text-sm">Team Colors:</span>
+                        <div
+                          className="w-6 h-6 border border-white/10"
+                          style={{ backgroundColor: formData.primary_color }}
+                        />
+                        <div
+                          className="w-6 h-6 border border-white/10"
+                          style={{ backgroundColor: formData.secondary_color }}
+                        />
+                      </div>
+                      {formData.logo_url && (
+                        <div className="pt-2">
+                          <span className="text-white/40 text-sm">Team Logo:</span>
+                          <img
+                            src={formData.logo_url}
+                            alt="Team logo"
+                            className="w-20 h-20 object-cover border border-white/10 mt-1"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border border-white/10 p-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="font-medium text-white">Team Registration Fee</span>
+                        <span className="text-xl font-bold text-white">
+                          ${teamRegistrationFee.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-white/40">
+                        Covers team entry for the entire season. After payment, you&apos;ll receive a link to enter your roster (5-15 players).
+                      </p>
+                    </div>
+
+                    <div className="bg-neon/5 border border-neon/20 p-4">
+                      <h4 className="font-medium text-white mb-2">Next Steps After Payment</h4>
+                      <ol className="text-sm text-white/60 space-y-1 list-decimal list-inside">
+                        <li>You&apos;ll be redirected to a success page with a roster entry link</li>
+                        <li>Use that link to add your players (5-15 names required)</li>
+                        <li>Once submitted, your team will be officially registered</li>
+                      </ol>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-4">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.waiver_signed}
+                          onChange={(e) => updateField("waiver_signed", e.target.checked)}
+                          className="mt-1 accent-[#C92B2A]"
+                        />
+                        <span className="text-sm text-white/60">
+                          I agree to the{" "}
+                          <a href="#" className="text-neon hover:underline">
+                            league rules
+                          </a>{" "}
+                          and{" "}
+                          <a href="#" className="text-neon hover:underline">
+                            terms of service
+                          </a>
+                          . I understand that I am responsible for my team&apos;s conduct.
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between mt-8">
+                  {step > 1 ? (
+                    <button
+                      onClick={() => setStep((s) => s - 1)}
+                      className="border border-white/20 text-white px-6 py-3 text-sm font-bold uppercase tracking-wider hover:border-neon hover:text-neon transition-colors"
+                    >
+                      Back
+                    </button>
+                  ) : (
+                    <div />
+                  )}
+                  {step < 3 ? (
+                    <button
+                      onClick={handleNextStep}
+                      className="bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
+                    >
+                      Continue
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubmit}
+                      disabled={loading || !formData.waiver_signed}
+                      className="bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-4 w-4" />
+                          Pay ${teamRegistrationFee}
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Registration Info</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="bg-[#121212] border border-white/10 p-6">
+                <h3 className="font-bold text-white mb-4">Registration Info</h3>
+                <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                    <Calendar className="h-5 w-5 text-neon mt-0.5" />
                     <div>
-                      <p className="font-medium">Spring 2026 Season</p>
-                      <p className="text-sm text-muted-foreground">
-                        March - June 2026
-                      </p>
+                      <p className="font-medium text-white">Spring 2026 Season</p>
+                      <p className="text-sm text-white/40">March - June 2026</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <CreditCard className="h-5 w-5 text-primary mt-0.5" />
+                    <CreditCard className="h-5 w-5 text-neon mt-0.5" />
                     <div>
-                      <p className="font-medium">${teamRegistrationFee} per Team</p>
-                      <p className="text-sm text-muted-foreground">
-                        One-time registration fee
-                      </p>
+                      <p className="font-medium text-white">${teamRegistrationFee} per Team</p>
+                      <p className="text-sm text-white/40">One-time registration fee</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Users className="h-5 w-5 text-primary mt-0.5" />
+                    <Users className="h-5 w-5 text-neon mt-0.5" />
                     <div>
-                      <p className="font-medium">5-15 Players</p>
-                      <p className="text-sm text-muted-foreground">
-                        Roster size requirements
-                      </p>
+                      <p className="font-medium text-white">5-15 Players</p>
+                      <p className="text-sm text-white/40">Roster size requirements</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Shield className="h-5 w-5 text-primary mt-0.5" />
+                    <Shield className="h-5 w-5 text-neon mt-0.5" />
                     <div>
-                      <p className="font-medium">Secure Payment</p>
-                      <p className="text-sm text-muted-foreground">
-                        Processed via Stripe
-                      </p>
+                      <p className="font-medium text-white">Secure Payment</p>
+                      <p className="text-sm text-white/40">Processed via Stripe</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">What's Included</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      10+ regular season games
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      Playoff eligibility
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      Professional referees
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      Stats tracking for all players
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      Live streaming of games
-                    </li>
-                  </ul>
-                  <p className="text-xs text-muted-foreground mt-3 italic">*Jerseys not included</p>
-                </CardContent>
-              </Card>
+              <div className="bg-[#121212] border border-white/10 p-6">
+                <h3 className="font-bold text-white mb-4">What&apos;s Included</h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2 text-white/60">
+                    <Check className="h-4 w-4 text-neon" />
+                    10+ regular season games
+                  </li>
+                  <li className="flex items-center gap-2 text-white/60">
+                    <Check className="h-4 w-4 text-neon" />
+                    Playoff eligibility
+                  </li>
+                  <li className="flex items-center gap-2 text-white/60">
+                    <Check className="h-4 w-4 text-neon" />
+                    Professional referees
+                  </li>
+                  <li className="flex items-center gap-2 text-white/60">
+                    <Check className="h-4 w-4 text-neon" />
+                    Stats tracking for all players
+                  </li>
+                  <li className="flex items-center gap-2 text-white/60">
+                    <Check className="h-4 w-4 text-neon" />
+                    Live streaming of games
+                  </li>
+                </ul>
+                <p className="text-xs text-white/30 mt-3 italic">*Jerseys not included</p>
+              </div>
 
               <SponsorBanner variant="compact" showTitle={false} />
             </div>

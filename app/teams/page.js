@@ -1,6 +1,4 @@
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Footer } from "@/components/footer"
 import { getTeams } from "@/lib/queries"
 import { calculateWinPercentage } from "@/lib/utils"
@@ -21,82 +19,91 @@ export default async function TeamsPage() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
-        <div className="container py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Teams</h1>
-            <p className="text-muted-foreground mt-2">
-              All teams competing in the current season
+        {/* Header */}
+        <section className="py-16 md:py-24">
+          <div className="container">
+            <p className="text-neon text-xs font-bold uppercase tracking-[0.3em] mb-2">
+              Leaderboard
             </p>
+            <h1 className="font-display text-4xl md:text-5xl text-white">
+              THE TEAMS
+            </h1>
           </div>
+        </section>
 
+        <div className="container pb-16">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {teams.map((team, index) => (
               <Link key={team.id} href={`/teams/${team.id}`}>
-                <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-4">
-                        {team.logo_url ? (
-                          <img
-                            src={team.logo_url}
-                            alt={team.name}
-                            className="w-16 h-16 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold"
-                            style={{ backgroundColor: team.primary_color || "#000" }}
-                          >
-                            {team.abbreviation || team.name.substring(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <h2 className="text-xl font-semibold">{team.name}</h2>
-                          <p className="text-sm text-muted-foreground">
-                            {team.abbreviation}
-                          </p>
+                <div className="bg-[#121212] border border-white/10 p-6 brutal-hover cursor-pointer h-full">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      {team.logo_url ? (
+                        <img
+                          src={team.logo_url}
+                          alt={team.name}
+                          className="w-16 h-16 object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="w-16 h-16 flex items-center justify-center text-white text-xl font-bold"
+                          style={{ backgroundColor: team.primary_color || "#000" }}
+                        >
+                          {team.abbreviation || team.name.substring(0, 2).toUpperCase()}
                         </div>
-                      </div>
-                      <Badge variant={index < 3 ? "default" : "secondary"}>
-                        #{index + 1}
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex space-x-4">
-                        <div>
-                          <span className="text-muted-foreground">W: </span>
-                          <span className="font-medium">{team.wins}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">L: </span>
-                          <span className="font-medium">{team.losses}</span>
-                        </div>
-                      </div>
-                      <div className="text-lg font-bold">
-                        {calculateWinPercentage(team.wins, team.losses)
-                          .toFixed(3)
-                          .replace("0.", ".")}
+                      )}
+                      <div>
+                        <h2 className="font-display text-xl text-white">{team.name}</h2>
+                        <p className="text-sm text-white/40">
+                          {team.abbreviation}
+                        </p>
                       </div>
                     </div>
+                    <span
+                      className={`font-display text-3xl ${
+                        index < 3
+                          ? "text-neon neon-glow"
+                          : "text-white/20"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                  </div>
 
-                    <div
-                      className="h-1 rounded-full mt-4"
-                      style={{
-                        background: `linear-gradient(to right, ${team.primary_color} 0%, ${team.secondary_color} 100%)`,
-                      }}
-                    />
-                  </CardContent>
-                </Card>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex space-x-4">
+                      <div>
+                        <span className="text-white/40">W: </span>
+                        <span className="font-medium text-white">{team.wins}</span>
+                      </div>
+                      <div>
+                        <span className="text-white/40">L: </span>
+                        <span className="font-medium text-white">{team.losses}</span>
+                      </div>
+                    </div>
+                    <div className="text-lg font-bold text-neon">
+                      {calculateWinPercentage(team.wins, team.losses)
+                        .toFixed(3)
+                        .replace("0.", ".")}
+                    </div>
+                  </div>
+
+                  <div
+                    className="h-1 mt-4"
+                    style={{
+                      background: `linear-gradient(to right, ${team.primary_color} 0%, ${team.secondary_color} 100%)`,
+                    }}
+                  />
+                </div>
               </Link>
             ))}
           </div>
 
           {teams.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No teams found.</p>
+            <div className="bg-[#121212] border border-white/10 py-12 text-center">
+              <p className="text-white/40">No teams found.</p>
             </div>
           )}
         </div>

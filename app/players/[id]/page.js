@@ -1,7 +1,5 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -10,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
 import { getPlayerById, getStatsByPlayer } from "@/lib/queries"
@@ -123,28 +120,29 @@ export default async function PlayerDetailPage({ params }) {
   }).sort((a, b) => new Date(b.game?.game_date) - new Date(a.game?.game_date))
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
         <div className="container py-8">
-          {/* Back Button */}
-          <Link href="/players">
-            <Button variant="ghost" size="sm" className="mb-6">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Players
-            </Button>
+          {/* Back Link */}
+          <Link
+            href="/players"
+            className="inline-flex items-center gap-2 text-white/40 hover:text-neon transition-colors text-sm mb-8"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Players
           </Link>
 
           {/* Player Header */}
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-10">
             {player.photo_url ? (
               <img
                 src={player.photo_url}
                 alt={player.name}
-                className="w-32 h-32 rounded-full object-cover"
+                className="w-32 h-32 object-cover"
               />
             ) : (
               <div
-                className="w-32 h-32 rounded-full flex items-center justify-center text-white text-4xl font-bold"
+                className="w-32 h-32 flex items-center justify-center text-white text-4xl font-bold"
                 style={{ backgroundColor: team?.primary_color || "#666" }}
               >
                 {player.number || "?"}
@@ -152,22 +150,24 @@ export default async function PlayerDetailPage({ params }) {
             )}
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold tracking-tight">{player.name}</h1>
+              <h1 className="font-display text-4xl text-white">{player.name}</h1>
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 {team && (
-                  <Link href={`/teams/${team.id}`}>
-                    <Badge
-                      variant="outline"
-                      className="cursor-pointer hover:bg-muted"
-                    >
-                      {team.name}
-                    </Badge>
+                  <Link
+                    href={`/teams/${team.id}`}
+                    className="border border-white/20 text-white/60 hover:border-neon hover:text-neon transition-colors text-sm px-3 py-1"
+                  >
+                    {team.name}
                   </Link>
                 )}
-                <Badge variant="secondary">#{player.number}</Badge>
-                <Badge variant="secondary">{player.position}</Badge>
+                <span className="bg-white/10 text-white/60 text-sm px-3 py-1">
+                  #{player.number}
+                </span>
+                <span className="bg-white/10 text-white/60 text-sm px-3 py-1">
+                  {player.position}
+                </span>
                 {player.height && (
-                  <span className="text-muted-foreground">{player.height}</span>
+                  <span className="text-white/40">{player.height}</span>
                 )}
               </div>
             </div>
@@ -175,67 +175,69 @@ export default async function PlayerDetailPage({ params }) {
 
           {/* Season Averages */}
           {averages && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Season Averages ({games} Games)</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="bg-[#121212] border border-white/10 mb-8">
+              <div className="px-6 py-4 border-b border-white/10">
+                <h2 className="font-display text-xl text-white">
+                  Season Averages <span className="text-white/40 text-sm font-normal">({games} Games)</span>
+                </h2>
+              </div>
+              <div className="p-6">
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold">{averages.ppg}</div>
-                    <div className="text-xs text-muted-foreground">PPG</div>
+                    <div className="text-3xl font-bold text-neon">{averages.ppg}</div>
+                    <div className="text-xs text-white/40 uppercase">PPG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.rpg}</div>
-                    <div className="text-xs text-muted-foreground">RPG</div>
+                    <div className="text-3xl font-bold text-white">{averages.rpg}</div>
+                    <div className="text-xs text-white/40 uppercase">RPG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.apg}</div>
-                    <div className="text-xs text-muted-foreground">APG</div>
+                    <div className="text-3xl font-bold text-white">{averages.apg}</div>
+                    <div className="text-xs text-white/40 uppercase">APG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.spg}</div>
-                    <div className="text-xs text-muted-foreground">SPG</div>
+                    <div className="text-3xl font-bold text-white">{averages.spg}</div>
+                    <div className="text-xs text-white/40 uppercase">SPG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.bpg}</div>
-                    <div className="text-xs text-muted-foreground">BPG</div>
+                    <div className="text-3xl font-bold text-white">{averages.bpg}</div>
+                    <div className="text-xs text-white/40 uppercase">BPG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.mpg}</div>
-                    <div className="text-xs text-muted-foreground">MPG</div>
+                    <div className="text-3xl font-bold text-white">{averages.mpg}</div>
+                    <div className="text-xs text-white/40 uppercase">MPG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.fgPct}%</div>
-                    <div className="text-xs text-muted-foreground">FG%</div>
+                    <div className="text-3xl font-bold text-white">{averages.fgPct}%</div>
+                    <div className="text-xs text-white/40 uppercase">FG%</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.threePct}%</div>
-                    <div className="text-xs text-muted-foreground">3P%</div>
+                    <div className="text-3xl font-bold text-white">{averages.threePct}%</div>
+                    <div className="text-xs text-white/40 uppercase">3P%</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.ftPct}%</div>
-                    <div className="text-xs text-muted-foreground">FT%</div>
+                    <div className="text-3xl font-bold text-white">{averages.ftPct}%</div>
+                    <div className="text-xs text-white/40 uppercase">FT%</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.topg}</div>
-                    <div className="text-xs text-muted-foreground">TOPG</div>
+                    <div className="text-3xl font-bold text-white">{averages.topg}</div>
+                    <div className="text-xs text-white/40 uppercase">TOPG</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{averages.fpg}</div>
-                    <div className="text-xs text-muted-foreground">FPG</div>
+                    <div className="text-3xl font-bold text-white">{averages.fpg}</div>
+                    <div className="text-xs text-white/40 uppercase">FPG</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Game Log */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Game Log</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="bg-[#121212] border border-white/10">
+            <div className="px-6 py-4 border-b border-white/10">
+              <h2 className="font-display text-xl text-white">Game Log</h2>
+            </div>
+            <div className="p-4">
               {gameLogs.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -257,13 +259,13 @@ export default async function PlayerDetailPage({ params }) {
                   <TableBody>
                     {gameLogs.map((log) => (
                       <TableRow key={log.id}>
-                        <TableCell className="text-sm">
+                        <TableCell className="text-sm text-white/40">
                           {log.game ? formatDate(log.game.game_date) : "-"}
                         </TableCell>
                         <TableCell>
                           <Link
                             href={`/teams/${log.opponent?.id}`}
-                            className="hover:underline"
+                            className="text-white/60 hover:text-neon transition-colors"
                           >
                             {log.isHome ? "vs " : "@ "}
                             {log.opponent?.abbreviation || "-"}
@@ -273,20 +275,20 @@ export default async function PlayerDetailPage({ params }) {
                           <span
                             className={
                               log.result === "W"
-                                ? "text-green-600 font-medium"
+                                ? "text-green-500 font-medium"
                                 : log.result === "L"
-                                ? "text-red-600 font-medium"
-                                : ""
+                                ? "text-neon font-medium"
+                                : "text-white/60"
                             }
                           >
                             {log.result}
                           </span>
-                          <span className="text-muted-foreground text-sm ml-1">
+                          <span className="text-white/40 text-sm ml-1">
                             {log.score}
                           </span>
                         </TableCell>
                         <TableCell className="text-center">{log.minutes}</TableCell>
-                        <TableCell className="text-center font-medium">
+                        <TableCell className="text-center text-white font-bold">
                           {log.points}
                         </TableCell>
                         <TableCell className="text-center hidden sm:table-cell">
@@ -315,12 +317,12 @@ export default async function PlayerDetailPage({ params }) {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-muted-foreground text-center py-8">
+                <p className="text-white/40 text-center py-8">
                   No game stats recorded yet.
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />
