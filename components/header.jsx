@@ -32,8 +32,8 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 mr-8">
               <span className="font-display text-xl tracking-tight">
-                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN</span>
-                <span className="text-white ml-1">IT LEAGUE</span>
+                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN IT</span>
+                <span className="text-white ml-1">LEAGUE</span>
               </span>
             </Link>
 

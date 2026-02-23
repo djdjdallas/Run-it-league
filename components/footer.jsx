@@ -9,8 +9,8 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-block mb-4">
               <span className="font-display text-xl tracking-tight">
-                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN</span>
-                <span className="text-white ml-1">IT LEAGUE</span>
+                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN IT</span>
+                <span className="text-white ml-1">LEAGUE</span>
               </span>
             </Link>
             <p className="text-sm text-white/40 leading-relaxed">
