@@ -469,7 +469,7 @@ export default function TeamRegisterPage() {
                     <Calendar className="h-5 w-5 text-neon mt-0.5" />
                     <div>
                       <p className="font-medium text-white">Spring 2026 Season</p>
-                      <p className="text-sm text-white/40">March - June 2026</p>
+                      <p className="text-sm text-white/40">May - June 2026</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

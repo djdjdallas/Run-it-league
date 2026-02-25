@@ -68,12 +68,6 @@ export function Header() {
               >
                 Register
               </Link>
-              <Link
-                href="/admin"
-                className="text-white/40 text-sm hover:text-white/70 transition-colors"
-              >
-                Admin
-              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -114,13 +108,6 @@ export function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Register
-                </Link>
-                <Link
-                  href="/admin"
-                  className="text-sm text-white/40 hover:text-white/70"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Admin
                 </Link>
               </nav>
             </div>

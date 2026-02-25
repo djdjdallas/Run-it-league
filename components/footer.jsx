@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="bg-[#080808] border-t border-white/10">
       <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
           {/* Logo & Description */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="inline-block mb-4">
@@ -71,19 +71,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Admin */}
-          <div>
-            <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-4">
-              Admin
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/admin" className="text-white/50 hover:text-neon transition-colors">
-                  Dashboard
-                </Link>
-              </li>
-            </ul>
-          </div>
         </div>
 
         {/* Copyright */}
