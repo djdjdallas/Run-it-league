@@ -16,7 +16,7 @@ import {
   Palette,
 } from "lucide-react"
 
-const teamRegistrationFee = 450.00
+const teamRegistrationFee = 500.00
 
 export default function TeamRegisterPage() {
   const [step, setStep] = useState(1)
