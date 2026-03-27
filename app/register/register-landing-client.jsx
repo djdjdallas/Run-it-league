@@ -12,7 +12,7 @@ import {
   Check,
 } from "lucide-react"
 
-const teamRegistrationFee = 450.00
+const teamRegistrationFee = 500.00
 
 export default function RegisterLandingClient({ sponsors }) {
   return (
