@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
-
-// In-memory storage for demo (replace with Supabase in production)
-const teamRegistrations = new Map()
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 // Generate a secure random token
 function generateToken() {
@@ -30,42 +28,43 @@ export async function POST(request) {
       )
     }
 
-    // Generate unique ID and roster token
-    const id = `reg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const supabase = await createServerSupabaseClient()
+
     const roster_token = generateToken()
     const roster_token_expires_at = new Date(
       Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
     ).toISOString()
 
-    const registration = {
-      id,
-      team_name,
-      primary_color: primary_color || "#000000",
-      secondary_color: secondary_color || "#FFFFFF",
-      captain_name,
-      captain_email,
-      captain_phone: captain_phone || null,
-      logo_url: logo_url || null,
-      status: "pending_payment",
-      roster_token,
-      roster_token_expires_at,
-      min_players: 5,
-      max_players: 15,
-      created_at: new Date().toISOString(),
-      paid_at: null,
-      roster_completed_at: null,
-      team_id: null,
+    const { data, error } = await supabase
+      .from("team_registrations")
+      .insert({
+        team_name,
+        primary_color: primary_color || "#000000",
+        secondary_color: secondary_color || "#FFFFFF",
+        captain_name,
+        captain_email,
+        captain_phone: captain_phone || null,
+        logo_url: logo_url || null,
+        status: "registered",
+        roster_token,
+        roster_token_expires_at,
+        min_players: 5,
+        max_players: 15,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Supabase insert error:", error)
+      return NextResponse.json(
+        { error: "Failed to create registration" },
+        { status: 500 }
+      )
     }
 
-    // Store registration (in production, save to Supabase)
-    teamRegistrations.set(id, registration)
-
-    // Also store by token for easy lookup
-    teamRegistrations.set(`token_${roster_token}`, id)
-
     return NextResponse.json({
-      id,
-      roster_token,
+      id: data.id,
+      roster_token: data.roster_token,
       message: "Registration created successfully",
     })
   } catch (error) {
@@ -76,6 +75,3 @@ export async function POST(request) {
     )
   }
 }
-
-// Export storage for use by other routes
-export { teamRegistrations }

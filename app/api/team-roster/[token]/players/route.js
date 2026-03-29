@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-import { teamRegistrations } from "../../../team-registration/route"
-import { rosterEntries, getRegistrationByToken } from "../route"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 const MAX_PLAYERS = 15
 
@@ -8,9 +7,8 @@ export async function POST(request, { params }) {
   try {
     const { token } = params
     const body = await request.json()
-    const { player_name, photo_url } = body
+    const { player_name } = body
 
-    // Validate player name
     if (!player_name || player_name.trim().length < 2) {
       return NextResponse.json(
         { error: "Player name must be at least 2 characters" },
@@ -18,25 +16,16 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Find registration
-    let registration = getRegistrationByToken(token)
+    const supabase = await createServerSupabaseClient()
 
-    // Demo mode handling
-    if (!registration && token.startsWith("demo_")) {
-      const regId = token.replace("demo_", "")
-      registration = {
-        id: regId,
-        team_name: "Demo Team",
-        status: "paid",
-        roster_token: token,
-        min_players: 5,
-        max_players: 15,
-      }
-      teamRegistrations.set(regId, registration)
-      teamRegistrations.set(`token_${token}`, regId)
-    }
+    // Find registration by token
+    const { data: registration, error: regError } = await supabase
+      .from("team_registrations")
+      .select("id, status")
+      .eq("roster_token", token)
+      .single()
 
-    if (!registration) {
+    if (regError || !registration) {
       return NextResponse.json(
         { error: "Invalid roster link" },
         { status: 404 }
@@ -50,29 +39,36 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Get current players
-    const players = rosterEntries.get(registration.id) || []
+    // Check current player count
+    const { count } = await supabase
+      .from("team_roster_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("team_registration_id", registration.id)
 
-    // Check max players
-    if (players.length >= MAX_PLAYERS) {
+    if (count >= MAX_PLAYERS) {
       return NextResponse.json(
         { error: `Maximum ${MAX_PLAYERS} players allowed` },
         { status: 400 }
       )
     }
 
-    // Create new player entry
-    const newPlayer = {
-      id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      team_registration_id: registration.id,
-      player_name: player_name.trim(),
-      photo_url: photo_url || null,
-      created_at: new Date().toISOString(),
-    }
+    // Add player
+    const { data: newPlayer, error: insertError } = await supabase
+      .from("team_roster_entries")
+      .insert({
+        team_registration_id: registration.id,
+        player_name: player_name.trim(),
+      })
+      .select()
+      .single()
 
-    // Add to roster
-    players.push(newPlayer)
-    rosterEntries.set(registration.id, players)
+    if (insertError) {
+      console.error("Insert player error:", insertError)
+      return NextResponse.json(
+        { error: "Failed to add player" },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(newPlayer)
   } catch (error) {
@@ -97,16 +93,16 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    // Find registration
-    let registration = getRegistrationByToken(token)
+    const supabase = await createServerSupabaseClient()
 
-    // Demo mode handling
-    if (!registration && token.startsWith("demo_")) {
-      const regId = token.replace("demo_", "")
-      registration = { id: regId, status: "paid" }
-    }
+    // Find registration by token
+    const { data: registration, error: regError } = await supabase
+      .from("team_registrations")
+      .select("id, status")
+      .eq("roster_token", token)
+      .single()
 
-    if (!registration) {
+    if (regError || !registration) {
       return NextResponse.json(
         { error: "Invalid roster link" },
         { status: 404 }
@@ -120,20 +116,18 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    // Get current players
-    const players = rosterEntries.get(registration.id) || []
+    const { error: deleteError } = await supabase
+      .from("team_roster_entries")
+      .delete()
+      .eq("id", player_id)
+      .eq("team_registration_id", registration.id)
 
-    // Remove player
-    const filteredPlayers = players.filter((p) => p.id !== player_id)
-
-    if (filteredPlayers.length === players.length) {
+    if (deleteError) {
       return NextResponse.json(
-        { error: "Player not found" },
-        { status: 404 }
+        { error: "Failed to remove player" },
+        { status: 500 }
       )
     }
-
-    rosterEntries.set(registration.id, filteredPlayers)
 
     return NextResponse.json({ success: true })
   } catch (error) {

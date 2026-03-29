@@ -10,10 +10,10 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  CreditCard,
   Shield,
   Calendar,
   Palette,
+  Mail,
 } from "lucide-react"
 
 const teamRegistrationFee = 500.00
@@ -99,24 +99,7 @@ export default function TeamRegisterPage() {
         throw new Error(regData.error || "Failed to create registration")
       }
 
-      const checkoutResponse = await fetch("/api/create-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "team_registration",
-          team_registration_id: regData.id,
-          email: formData.captain_email,
-        }),
-      })
-
-      const checkoutData = await checkoutResponse.json()
-      if (!checkoutResponse.ok) {
-        throw new Error(checkoutData.error || "Failed to create checkout")
-      }
-
-      if (checkoutData.url) {
-        window.location.href = checkoutData.url
-      }
+      window.location.href = `/register/team/success?registration_id=${regData.id}`
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.")
     } finally {
@@ -137,7 +120,7 @@ export default function TeamRegisterPage() {
               </h1>
             </div>
             <p className="text-white/40">
-              Register your team for the Run It League - ${teamRegistrationFee} per team
+              Register your team for the Run It League
             </p>
           </div>
         </section>
@@ -174,12 +157,12 @@ export default function TeamRegisterPage() {
                 <h2 className="text-xl font-bold text-white mb-1">
                   {step === 1 && "Team Information"}
                   {step === 2 && "Captain Information"}
-                  {step === 3 && "Review & Payment"}
+                  {step === 3 && "Review & Submit"}
                 </h2>
                 <p className="text-white/40 text-sm mb-6">
                   {step === 1 && "Tell us about your team"}
                   {step === 2 && "Enter the team captain's details"}
-                  {step === 3 && "Confirm and pay to complete registration"}
+                  {step === 3 && "Confirm your details and submit registration"}
                 </p>
 
                 {error && (
@@ -374,23 +357,21 @@ export default function TeamRegisterPage() {
                     </div>
 
                     <div className="border border-white/10 p-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="font-medium text-white">Team Registration Fee</span>
-                        <span className="text-xl font-bold text-white">
-                          ${teamRegistrationFee.toFixed(2)}
-                        </span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Mail className="h-5 w-5 text-neon" />
+                        <span className="font-medium text-white">Invoice Information</span>
                       </div>
                       <p className="text-sm text-white/40">
-                        Covers team entry for the entire season. After payment, you&apos;ll receive a link to enter your roster (5-15 players).
+                        A ${teamRegistrationFee} registration invoice will be sent to <span className="text-white">{formData.captain_email}</span> after you register. Payment details will be included in the invoice.
                       </p>
                     </div>
 
                     <div className="bg-neon/5 border border-neon/20 p-4">
-                      <h4 className="font-medium text-white mb-2">Next Steps After Payment</h4>
+                      <h4 className="font-medium text-white mb-2">Next Steps After Registration</h4>
                       <ol className="text-sm text-white/60 space-y-1 list-decimal list-inside">
-                        <li>You&apos;ll be redirected to a success page with a roster entry link</li>
+                        <li>You&apos;ll receive a roster entry link on the next page</li>
                         <li>Use that link to add your players (5-15 names required)</li>
-                        <li>Once submitted, your team will be officially registered</li>
+                        <li>You&apos;ll receive an invoice for the ${teamRegistrationFee} registration fee via email</li>
                       </ol>
                     </div>
 
@@ -446,12 +427,12 @@ export default function TeamRegisterPage() {
                       {loading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
+                          Registering...
                         </>
                       ) : (
                         <>
-                          <CreditCard className="h-4 w-4" />
-                          Pay ${teamRegistrationFee}
+                          <Check className="h-4 w-4" />
+                          Register Team
                         </>
                       )}
                     </button>
@@ -473,10 +454,10 @@ export default function TeamRegisterPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <CreditCard className="h-5 w-5 text-neon mt-0.5" />
+                    <Mail className="h-5 w-5 text-neon mt-0.5" />
                     <div>
                       <p className="font-medium text-white">${teamRegistrationFee} per Team</p>
-                      <p className="text-sm text-white/40">One-time registration fee</p>
+                      <p className="text-sm text-white/40">Invoice sent after registration</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -489,8 +470,8 @@ export default function TeamRegisterPage() {
                   <div className="flex items-start gap-3">
                     <Shield className="h-5 w-5 text-neon mt-0.5" />
                     <div>
-                      <p className="font-medium text-white">Secure Payment</p>
-                      <p className="text-sm text-white/40">Processed via Stripe</p>
+                      <p className="font-medium text-white">Easy Registration</p>
+                      <p className="text-sm text-white/40">Register now, pay via invoice</p>
                     </div>
                   </div>
                 </div>

@@ -78,9 +78,9 @@ export default function RegisterLandingClient({ sponsors }) {
                   <h3 className="font-bold text-white mb-3">How It Works</h3>
                   <ol className="space-y-2 text-sm list-decimal list-inside text-white/40">
                     <li>Fill out team information and captain details</li>
-                    <li>Pay the ${teamRegistrationFee} registration fee</li>
                     <li>Receive a link to enter your roster (5-15 players)</li>
                     <li>Submit your roster to complete registration</li>
+                    <li>Receive a ${teamRegistrationFee} invoice via email</li>
                   </ol>
                 </div>
               </div>
@@ -108,14 +108,14 @@ export default function RegisterLandingClient({ sponsors }) {
                 <Users className="h-8 w-8 text-neon mb-3" />
                 <h3 className="font-bold text-white mb-2">Roster Requirements</h3>
                 <p className="text-sm text-white/40">
-                  Teams need 5-15 players. Captain enters roster after payment.
+                  Teams need 5-15 players. Captain enters roster after registration.
                 </p>
               </div>
               <div className="bg-[#121212] border border-white/10 p-6">
                 <Shield className="h-8 w-8 text-neon mb-3" />
-                <h3 className="font-bold text-white mb-2">Secure Payment</h3>
+                <h3 className="font-bold text-white mb-2">Easy Registration</h3>
                 <p className="text-sm text-white/40">
-                  All payments are processed securely through Stripe.
+                  Register your team and receive an invoice via email.
                 </p>
               </div>
             </div>
@@ -131,9 +131,9 @@ export default function RegisterLandingClient({ sponsors }) {
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-white mb-1">What happens after I pay?</h4>
+                  <h4 className="font-medium text-white mb-1">What happens after I register?</h4>
                   <p className="text-sm text-white/40">
-                    You&apos;ll receive a unique link to enter your team roster. You&apos;ll need to add at least 5 player names to complete registration.
+                    You&apos;ll receive a unique link to enter your team roster. You&apos;ll need to add at least 5 player names. An invoice for the registration fee will be sent to your email.
                   </p>
                 </div>
                 <div>
