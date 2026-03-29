@@ -34,25 +34,9 @@ export default function TeamRegistrationSuccessPage() {
         if (response.ok) {
           const data = await response.json()
           setRegistration(data)
-        } else {
-          setRegistration({
-            id: registrationId,
-            team_name: "Your Team",
-            captain_name: "Team Captain",
-            captain_email: "captain@example.com",
-            roster_token: `demo_${registrationId}`,
-            status: "paid",
-          })
         }
       } catch (err) {
-        setRegistration({
-          id: registrationId,
-          team_name: "Your Team",
-          captain_name: "Team Captain",
-          captain_email: "captain@example.com",
-          roster_token: `demo_${registrationId}`,
-          status: "paid",
-        })
+        console.error("Failed to fetch registration:", err)
       } finally {
         setLoading(false)
       }
@@ -101,7 +85,7 @@ export default function TeamRegistrationSuccessPage() {
             <div className="w-20 h-20 bg-neon/10 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="h-10 w-10 text-neon" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Payment Successful!</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Registration Successful!</h1>
             <p className="text-white/40">
               {registration?.team_name || "Your team"} is registered. Now add your players.
             </p>
@@ -163,10 +147,10 @@ export default function TeamRegistrationSuccessPage() {
             <div className="border border-white/10 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Mail className="h-5 w-5 text-white/40" />
-                <span className="font-medium text-white">Email Confirmation</span>
+                <span className="font-medium text-white">Invoice Coming Soon</span>
               </div>
               <p className="text-sm text-white/40">
-                A confirmation email with the roster link has been sent to{" "}
+                A registration invoice will be sent to{" "}
                 <span className="font-medium text-white">
                   {registration?.captain_email || "your email"}
                 </span>

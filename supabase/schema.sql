@@ -457,7 +457,8 @@ create table if not exists team_registrations (
   captain_name text not null,
   captain_email text not null,
   captain_phone text,
-  status text default 'pending_payment', -- pending_payment, paid, roster_complete
+  logo_url text,
+  status text default 'registered', -- registered, paid, roster_complete
   roster_token text unique, -- secure token for roster entry page
   roster_token_expires_at timestamptz,
   min_players integer default 5,
