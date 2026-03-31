@@ -157,6 +157,38 @@ export default function RegistrationsClient({
     }
   }
 
+  // ---- Manual mark as paid ----
+  const [markingPaid, setMarkingPaid] = useState(null)
+
+  const handleMarkPaid = async (regId) => {
+    if (!confirm("Mark this registration as paid? This should only be used if Stripe didn't pick up the payment.")) {
+      return
+    }
+
+    setMarkingPaid(regId)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from("team_registrations")
+        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .eq("id", regId)
+
+      if (error) throw error
+
+      setTeamRegistrations((prev) =>
+        prev.map((r) =>
+          r.id === regId ? { ...r, status: "paid", paid_at: new Date().toISOString() } : r
+        )
+      )
+      setDetailsOpen(false)
+      router.refresh()
+    } catch (err) {
+      alert("Failed to update status: " + err.message)
+    } finally {
+      setMarkingPaid(null)
+    }
+  }
+
   const handleCopyUrl = async (url) => {
     try {
       await navigator.clipboard.writeText(url)
@@ -384,6 +416,21 @@ export default function RegistrationsClient({
                                 <Send className="h-4 w-4 mr-1" />
                               )}
                               Send Invoice
+                            </Button>
+                          )}
+                          {(reg.status === "pending_payment" || reg.status === "invoice_sent") && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleMarkPaid(reg.id)}
+                              disabled={markingPaid === reg.id}
+                            >
+                              {markingPaid === reg.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                              ) : (
+                                <DollarSign className="h-4 w-4 mr-1" />
+                              )}
+                              Mark Paid
                             </Button>
                           )}
                           <Button
@@ -712,6 +759,20 @@ export default function RegistrationsClient({
                       Generate Payment Link
                     </Button>
                   )}
+
+                  <Button
+                    variant="outline"
+                    onClick={() => handleMarkPaid(selectedRegistration.id)}
+                    disabled={markingPaid === selectedRegistration.id}
+                    className="w-full mt-2"
+                  >
+                    {markingPaid === selectedRegistration.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <DollarSign className="h-4 w-4 mr-2" />
+                    )}
+                    Mark as Paid Manually
+                  </Button>
                 </div>
               )}
             </div>
