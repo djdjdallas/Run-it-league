@@ -21,12 +21,26 @@ export default function TeamRegistrationSuccessPage() {
   const [copied, setCopied] = useState(false)
 
   const registrationId = searchParams.get("registration_id")
+  const sessionId = searchParams.get("session_id")
 
   useEffect(() => {
-    async function fetchRegistration() {
+    async function verifyAndFetch() {
       if (!registrationId) {
         setLoading(false)
         return
+      }
+
+      // Verify payment with Stripe to handle webhook race condition
+      if (sessionId) {
+        try {
+          await fetch("/api/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          })
+        } catch (err) {
+          console.error("Payment verification failed:", err)
+        }
       }
 
       try {
@@ -42,8 +56,8 @@ export default function TeamRegistrationSuccessPage() {
       }
     }
 
-    fetchRegistration()
-  }, [registrationId])
+    verifyAndFetch()
+  }, [registrationId, sessionId])
 
   const rosterUrl = registration?.roster_token
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/team-roster/${registration.roster_token}`
