@@ -6,7 +6,6 @@ export async function GET(request, { params }) {
     const { token } = params
     const supabase = await createServerSupabaseClient()
 
-    // Find registration by token
     const { data: registration, error } = await supabase
       .from("team_registrations")
       .select("*")
@@ -28,7 +27,15 @@ export async function GET(request, { params }) {
       )
     }
 
-    // Get players for this registration
+    // Check registration status
+    if (registration.status === "pending_payment") {
+      return NextResponse.json(
+        { error: "Payment not yet completed" },
+        { status: 400 }
+      )
+    }
+
+    // Get roster entries for this registration
     const { data: players } = await supabase
       .from("team_roster_entries")
       .select("*")

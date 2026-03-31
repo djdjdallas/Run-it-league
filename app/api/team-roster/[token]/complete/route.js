@@ -8,7 +8,6 @@ export async function POST(request, { params }) {
     const { token } = params
     const supabase = await createServerSupabaseClient()
 
-    // Find registration by token
     const { data: registration, error: regError } = await supabase
       .from("team_registrations")
       .select("*")
@@ -29,7 +28,6 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Get players
     const { data: players, error: playersError } = await supabase
       .from("team_roster_entries")
       .select("*")
@@ -42,7 +40,6 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Validate minimum players
     if (!players || players.length < MIN_PLAYERS) {
       return NextResponse.json(
         { error: `At least ${MIN_PLAYERS} players are required` },
@@ -50,7 +47,6 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Create team record
     const { data: team, error: teamError } = await supabase
       .from("teams")
       .insert({
@@ -58,7 +54,6 @@ export async function POST(request, { params }) {
         abbreviation: registration.team_name.substring(0, 3).toUpperCase(),
         primary_color: registration.primary_color,
         secondary_color: registration.secondary_color,
-        logo_url: registration.logo_url || null,
         season_id: registration.season_id || null,
       })
       .select()
@@ -72,7 +67,6 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Create player records
     const playerRecords = players.map((p) => ({
       team_id: team.id,
       name: p.player_name,
@@ -87,7 +81,6 @@ export async function POST(request, { params }) {
       console.error("Create players error:", playersInsertError)
     }
 
-    // Update registration status
     await supabase
       .from("team_registrations")
       .update({

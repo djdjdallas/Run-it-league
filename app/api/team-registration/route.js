@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import crypto from "crypto"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
-// Generate a secure random token
 function generateToken() {
   return crypto.randomBytes(32).toString("hex")
 }
@@ -17,10 +16,8 @@ export async function POST(request) {
       captain_name,
       captain_email,
       captain_phone,
-      logo_url,
     } = body
 
-    // Validate required fields
     if (!team_name || !captain_name || !captain_email) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -30,9 +27,16 @@ export async function POST(request) {
 
     const supabase = await createServerSupabaseClient()
 
+    // Get current season if one exists
+    const { data: season } = await supabase
+      .from("seasons")
+      .select("id")
+      .eq("is_current", true)
+      .single()
+
     const roster_token = generateToken()
     const roster_token_expires_at = new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+      Date.now() + 7 * 24 * 60 * 60 * 1000
     ).toISOString()
 
     const { data, error } = await supabase
@@ -44,12 +48,12 @@ export async function POST(request) {
         captain_name,
         captain_email,
         captain_phone: captain_phone || null,
-        logo_url: logo_url || null,
-        status: "registered",
+        status: "pending_payment",
         roster_token,
         roster_token_expires_at,
         min_players: 5,
         max_players: 15,
+        season_id: season?.id || null,
       })
       .select()
       .single()

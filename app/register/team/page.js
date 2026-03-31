@@ -70,6 +70,8 @@ export default function TeamRegisterPage() {
     }
   }
 
+  const [submitted, setSubmitted] = useState(false)
+
   const handleSubmit = async () => {
     if (!formData.waiver_signed) {
       setError("You must agree to the terms to continue")
@@ -90,7 +92,6 @@ export default function TeamRegisterPage() {
           captain_name: formData.captain_name,
           captain_email: formData.captain_email,
           captain_phone: formData.captain_phone,
-          logo_url: formData.logo_url || null,
         }),
       })
 
@@ -99,7 +100,7 @@ export default function TeamRegisterPage() {
         throw new Error(regData.error || "Failed to create registration")
       }
 
-      window.location.href = `/register/team/success?registration_id=${regData.id}`
+      setSubmitted(true)
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.")
     } finally {
@@ -126,6 +127,36 @@ export default function TeamRegisterPage() {
         </section>
 
         <div className="container pb-16">
+          {submitted ? (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-[#121212] border border-white/10 p-8 text-center">
+                <div className="w-20 h-20 bg-neon/10 flex items-center justify-center mx-auto mb-6">
+                  <Check className="h-10 w-10 text-neon" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Registration Submitted!</h2>
+                <p className="text-white/60 mb-6">
+                  Thank you for registering <span className="font-bold text-white">{formData.team_name}</span>.
+                  We&apos;ll review your registration and send a payment invoice to{" "}
+                  <span className="font-bold text-white">{formData.captain_email}</span>.
+                </p>
+                <div className="bg-white/5 border border-white/10 p-4 mb-6 text-left">
+                  <h3 className="font-bold text-white mb-3">What Happens Next</h3>
+                  <ol className="space-y-2 text-sm text-white/60 list-decimal list-inside">
+                    <li>Our admin will review your registration</li>
+                    <li>You&apos;ll receive a payment link via email (${teamRegistrationFee})</li>
+                    <li>After payment, you&apos;ll get a link to enter your roster (5-15 players)</li>
+                    <li>Submit your roster to complete registration</li>
+                  </ol>
+                </div>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors"
+                >
+                  Return to Home
+                </Link>
+              </div>
+            </div>
+          ) : (
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Registration Form */}
             <div className="lg:col-span-2">
@@ -162,7 +193,7 @@ export default function TeamRegisterPage() {
                 <p className="text-white/40 text-sm mb-6">
                   {step === 1 && "Tell us about your team"}
                   {step === 2 && "Enter the team captain's details"}
-                  {step === 3 && "Confirm your details and submit registration"}
+                  {step === 3 && "Confirm your details and submit"}
                 </p>
 
                 {error && (
@@ -314,7 +345,7 @@ export default function TeamRegisterPage() {
                   </div>
                 )}
 
-                {/* Step 3: Review & Payment */}
+                {/* Step 3: Review & Submit */}
                 {step === 3 && (
                   <div className="space-y-6">
                     <div className="bg-white/5 p-4 space-y-3">
@@ -362,16 +393,16 @@ export default function TeamRegisterPage() {
                         <span className="font-medium text-white">Invoice Information</span>
                       </div>
                       <p className="text-sm text-white/40">
-                        A ${teamRegistrationFee} registration invoice will be sent to <span className="text-white">{formData.captain_email}</span> after you register. Payment details will be included in the invoice.
+                        A ${teamRegistrationFee} registration invoice will be sent to <span className="text-white">{formData.captain_email}</span> after we review your registration.
                       </p>
                     </div>
 
                     <div className="bg-neon/5 border border-neon/20 p-4">
-                      <h4 className="font-medium text-white mb-2">Next Steps After Registration</h4>
+                      <h4 className="font-medium text-white mb-2">What Happens Next</h4>
                       <ol className="text-sm text-white/60 space-y-1 list-decimal list-inside">
-                        <li>You&apos;ll receive a roster entry link on the next page</li>
-                        <li>Use that link to add your players (5-15 names required)</li>
-                        <li>You&apos;ll receive an invoice for the ${teamRegistrationFee} registration fee via email</li>
+                        <li>Our team reviews your registration</li>
+                        <li>You&apos;ll receive a payment invoice via email</li>
+                        <li>After payment, you&apos;ll get a roster entry link (5-15 players)</li>
                       </ol>
                     </div>
 
@@ -507,6 +538,7 @@ export default function TeamRegisterPage() {
               <SponsorBanner variant="compact" showTitle={false} />
             </div>
           </div>
+          )}
         </div>
       </main>
       <Footer />

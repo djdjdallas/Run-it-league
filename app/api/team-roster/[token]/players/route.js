@@ -18,7 +18,6 @@ export async function POST(request, { params }) {
 
     const supabase = await createServerSupabaseClient()
 
-    // Find registration by token
     const { data: registration, error: regError } = await supabase
       .from("team_registrations")
       .select("id, status")
@@ -39,7 +38,6 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Check current player count
     const { count } = await supabase
       .from("team_roster_entries")
       .select("id", { count: "exact", head: true })
@@ -52,7 +50,6 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Add player
     const { data: newPlayer, error: insertError } = await supabase
       .from("team_roster_entries")
       .insert({
@@ -95,7 +92,6 @@ export async function DELETE(request, { params }) {
 
     const supabase = await createServerSupabaseClient()
 
-    // Find registration by token
     const { data: registration, error: regError } = await supabase
       .from("team_registrations")
       .select("id, status")

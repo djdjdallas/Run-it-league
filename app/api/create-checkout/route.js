@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
-import { teamRegistrations } from "../team-registration/route"
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -9,7 +8,7 @@ function getStripe() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { type, team_registration_id, email, description } = body
+    const { type, team_registration_id, email } = body
 
     if (!type || !email) {
       return NextResponse.json(
@@ -39,13 +38,6 @@ export async function POST(request) {
           team_registration_id,
         },
       })
-
-      // Update registration status
-      const registration = teamRegistrations.get(team_registration_id)
-      if (registration) {
-        registration.stripe_session_id = session.id
-        teamRegistrations.set(team_registration_id, registration)
-      }
 
       return NextResponse.json({
         sessionId: session.id,

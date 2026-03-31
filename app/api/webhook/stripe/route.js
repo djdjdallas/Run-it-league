@@ -46,10 +46,22 @@ export async function POST(request) {
             .update({
               status: "paid",
               paid_at: new Date().toISOString(),
-              stripe_session_id: session.id,
-              stripe_payment_intent: session.payment_intent,
             })
             .eq("id", team_registration_id)
+
+          // Record payment in payments table
+          if (!error) {
+            await supabase.from("payments").insert({
+              team_registration_id,
+              amount: session.amount_total ? session.amount_total / 100 : 0,
+              currency: session.currency || "usd",
+              payment_type: "registration",
+              stripe_session_id: session.id,
+              stripe_payment_intent_id: session.payment_intent,
+              status: "completed",
+              completed_at: new Date().toISOString(),
+            })
+          }
 
           if (error) {
             console.error("Failed to update registration:", error)
