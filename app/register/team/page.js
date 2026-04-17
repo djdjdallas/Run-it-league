@@ -148,12 +148,20 @@ export default function TeamRegisterPage() {
                     <li>Submit your roster to complete registration</li>
                   </ol>
                 </div>
-                <Link
-                  href="/"
-                  className="inline-flex items-center gap-2 border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors"
-                >
-                  Return to Home
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link
+                    href="/team-roster/find"
+                    className="inline-flex items-center gap-2 bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
+                  >
+                    Enter Roster
+                  </Link>
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors"
+                  >
+                    Return to Home
+                  </Link>
+                </div>
               </div>
             </div>
           ) : (

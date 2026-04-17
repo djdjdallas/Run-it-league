@@ -84,13 +84,19 @@ export default function RegisterLandingClient({ sponsors }) {
                   </ol>
                 </div>
               </div>
-              <div className="mt-6">
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/register/team"
                   className="inline-flex items-center gap-2 bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
                 >
                   Register Your Team
                   <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/team-roster/find"
+                  className="inline-flex items-center gap-2 border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors"
+                >
+                  Already Registered? Enter Roster
                 </Link>
               </div>
             </div>
