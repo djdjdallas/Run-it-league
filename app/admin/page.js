@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, UserCircle, Calendar, Megaphone, TrendingUp } from "lucide-react"
+import { Users, UserCircle, Calendar, Megaphone, TrendingUp, ScanLine } from "lucide-react"
 import { getDashboardStats, getRecentGames, getUpcomingGames } from "@/lib/queries"
 
 export const metadata = {
@@ -130,15 +130,15 @@ export default async function AdminDashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/admin/announcements">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+        <Link href="/admin/scan-stats">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer border-primary/40">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="bg-primary/10 p-3 rounded-full">
-                <Megaphone className="h-6 w-6 text-primary" />
+                <ScanLine className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">Post Update</h3>
-                <p className="text-sm text-muted-foreground">Create announcement</p>
+                <h3 className="font-semibold">Scan Stats</h3>
+                <p className="text-sm text-muted-foreground">Photo → stats via AI</p>
               </div>
             </CardContent>
           </Card>

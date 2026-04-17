@@ -16,6 +16,8 @@ import {
   Handshake,
   Image,
   ClipboardList,
+  Radio,
+  ScanLine,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -24,6 +26,8 @@ const sidebarLinks = [
   { href: "/admin/teams", label: "Teams", icon: Users },
   { href: "/admin/players", label: "Players", icon: UserCircle },
   { href: "/admin/games", label: "Games", icon: Calendar },
+  { href: "/admin/scan-stats", label: "Scan Stats", icon: ScanLine },
+  { href: "/admin/streams", label: "Streams", icon: Radio },
   { href: "/admin/registrations", label: "Registrations", icon: UserPlus },
   { href: "/admin/team-registrations", label: "Team Registrations", icon: ClipboardList },
   { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },

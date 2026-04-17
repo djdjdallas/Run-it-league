@@ -34,6 +34,7 @@ export default function GameStatsClient({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [scannedImage, setScannedImage] = useState(null)
+  const [scannedImageUrl, setScannedImageUrl] = useState(game?.stat_sheet_url || null)
   const [activeTab, setActiveTab] = useState("manual")
 
   const createEmptyStat = (playerId) => ({
@@ -102,8 +103,9 @@ export default function GameStatsClient({
     setSaved(false)
   }
 
-  const handleStatsExtracted = (extractedStats, imagePreview) => {
+  const handleStatsExtracted = (extractedStats, imagePreview, uploadedUrl) => {
     setScannedImage(imagePreview)
+    if (uploadedUrl) setScannedImageUrl(uploadedUrl)
     setActiveTab("review")
 
     // Try to match extracted players to roster
@@ -228,6 +230,17 @@ export default function GameStatsClient({
       alert("Failed to save stats: " + error.message)
       setSaving(false)
       return
+    }
+
+    // Persist the stat sheet image URL to the game record if we have a fresh one
+    if (scannedImageUrl && scannedImageUrl !== game?.stat_sheet_url) {
+      const { error: gameError } = await supabase
+        .from("games")
+        .update({ stat_sheet_url: scannedImageUrl })
+        .eq("id", game.id)
+      if (gameError) {
+        console.error("Failed to save stat sheet URL:", gameError)
+      }
     }
 
     setSaving(false)
@@ -542,14 +555,14 @@ export default function GameStatsClient({
 
         <TabsContent value="review">
           <div className="grid gap-8 lg:grid-cols-2">
-            {scannedImage && (
+            {(scannedImage || scannedImageUrl) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Original Stat Sheet</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <img
-                    src={scannedImage}
+                    src={scannedImage || scannedImageUrl}
                     alt="Scanned stat sheet"
                     className="w-full rounded-lg border"
                   />

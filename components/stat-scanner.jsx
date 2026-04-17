@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
+import { createClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Upload, X, Loader2, Camera, FileImage } from "lucide-react"
 
 export function StatScanner({ onStatsExtracted }) {
@@ -14,16 +13,17 @@ export function StatScanner({ onStatsExtracted }) {
   const [error, setError] = useState(null)
   const [dragActive, setDragActive] = useState(false)
 
+  const cameraInputRef = useRef(null)
+  const fileInputRef = useRef(null)
+
   const handleFile = (selectedFile) => {
     if (!selectedFile) return
 
-    // Validate file type
     if (!selectedFile.type.startsWith("image/")) {
       setError("Please upload an image file")
       return
     }
 
-    // Validate file size (max 10MB)
     if (selectedFile.size > 10 * 1024 * 1024) {
       setError("File size must be less than 10MB")
       return
@@ -32,19 +32,15 @@ export function StatScanner({ onStatsExtracted }) {
     setFile(selectedFile)
     setError(null)
 
-    // Create preview
     const reader = new FileReader()
-    reader.onload = (e) => {
-      setPreview(e.target.result)
-    }
+    reader.onload = (e) => setPreview(e.target.result)
     reader.readAsDataURL(selectedFile)
   }
 
   const handleDrop = useCallback((e) => {
     e.preventDefault()
     setDragActive(false)
-    const droppedFile = e.dataTransfer.files[0]
-    handleFile(droppedFile)
+    handleFile(e.dataTransfer.files[0])
   }, [])
 
   const handleDragOver = useCallback((e) => {
@@ -61,6 +57,30 @@ export function StatScanner({ onStatsExtracted }) {
     setFile(null)
     setPreview(null)
     setError(null)
+    if (cameraInputRef.current) cameraInputRef.current.value = ""
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  const uploadToStorage = async (f) => {
+    const supabase = createClient()
+    const ext = f.name?.split(".").pop() || "jpg"
+    const fileName = `stat-sheets/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("images")
+      .upload(fileName, f, { contentType: f.type || "image/jpeg" })
+
+    if (uploadError) {
+      console.error("Stat sheet upload failed:", uploadError)
+      return null
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("images").getPublicUrl(fileName)
+    return publicUrl
   }
 
   const scanStats = async () => {
@@ -70,7 +90,6 @@ export function StatScanner({ onStatsExtracted }) {
     setError(null)
 
     try {
-      // Convert file to base64
       const reader = new FileReader()
       const base64Promise = new Promise((resolve) => {
         reader.onload = () => {
@@ -81,12 +100,9 @@ export function StatScanner({ onStatsExtracted }) {
       reader.readAsDataURL(file)
       const base64Image = await base64Promise
 
-      // Send to API
       const response = await fetch("/api/scan-stats", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: base64Image,
           mediaType: file.type,
@@ -99,7 +115,12 @@ export function StatScanner({ onStatsExtracted }) {
       }
 
       const data = await response.json()
-      onStatsExtracted(data.stats, preview)
+
+      // Upload the scanned image to storage so it can be attached to the game.
+      // Non-blocking: if upload fails, we still return the stats.
+      const storageUrl = await uploadToStorage(file)
+
+      onStatsExtracted(data.stats, preview, storageUrl)
     } catch (err) {
       setError(err.message || "Failed to extract stats from image")
     } finally {
@@ -133,21 +154,38 @@ export function StatScanner({ onStatsExtracted }) {
               </div>
               <div>
                 <p className="font-medium mb-1">
-                  Drop stat sheet image here or click to upload
+                  Scan a handwritten stat sheet
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Supports JPG, PNG, HEIC up to 10MB
+                  Take a photo or choose a file (JPG, PNG, HEIC — up to 10MB)
                 </p>
               </div>
-              <div className="flex gap-2">
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <span className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-                    <FileImage className="h-4 w-4 mr-2" />
-                    Choose File
-                  </span>
-                </label>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Take Photo
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <FileImage className="h-4 w-4 mr-2" />
+                  Choose File
+                </Button>
                 <input
-                  id="file-upload"
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleFile(e.target.files[0])}
+                />
+                <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"

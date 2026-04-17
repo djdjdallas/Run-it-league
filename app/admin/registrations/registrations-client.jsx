@@ -38,6 +38,7 @@ import {
   Check,
   DollarSign,
   Loader2,
+  Link2,
 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
@@ -81,6 +82,7 @@ export default function RegistrationsClient({
   const [invoiceLoading, setInvoiceLoading] = useState(null)
   const [paymentUrl, setPaymentUrl] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [copiedRosterId, setCopiedRosterId] = useState(null)
 
   // ---- Team registrations filtering ----
   const filteredTeamRegistrations = teamRegistrations.filter((reg) => {
@@ -196,6 +198,22 @@ export default function RegistrationsClient({
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Fallback
+    }
+  }
+
+  const handleCopyRosterLink = async (reg) => {
+    if (!reg?.roster_token) {
+      alert("This registration doesn't have a roster link yet.")
+      return
+    }
+    const url = `${window.location.origin}/team-roster/${reg.roster_token}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedRosterId(reg.id)
+      setTimeout(() => setCopiedRosterId(null), 2000)
+    } catch {
+      // Fallback: show the URL so admin can copy manually
+      prompt("Copy this roster link:", url)
     }
   }
 
@@ -431,6 +449,21 @@ export default function RegistrationsClient({
                                 <DollarSign className="h-4 w-4 mr-1" />
                               )}
                               Mark Paid
+                            </Button>
+                          )}
+                          {reg.roster_token && reg.status !== "roster_complete" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCopyRosterLink(reg)}
+                              title="Copy roster link to send to captain"
+                            >
+                              {copiedRosterId === reg.id ? (
+                                <Check className="h-4 w-4 mr-1 text-green-500" />
+                              ) : (
+                                <Link2 className="h-4 w-4 mr-1" />
+                              )}
+                              {copiedRosterId === reg.id ? "Copied" : "Roster Link"}
                             </Button>
                           )}
                           <Button
@@ -775,6 +808,36 @@ export default function RegistrationsClient({
                   </Button>
                 </div>
               )}
+
+              {/* Roster link (always available once registration exists) */}
+              {selectedRegistration.roster_token &&
+                selectedRegistration.status !== "roster_complete" && (
+                  <div className="border-t pt-4 mt-4">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Roster entry link for{" "}
+                      <strong>{selectedRegistration.captain_email}</strong>.
+                      Send this to the captain so they can add their players.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        readOnly
+                        value={`${typeof window !== "undefined" ? window.location.origin : ""}/team-roster/${selectedRegistration.roster_token}`}
+                        className="text-xs font-mono"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCopyRosterLink(selectedRegistration)}
+                      >
+                        {copiedRosterId === selectedRegistration.id ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
             </div>
           )}
 
