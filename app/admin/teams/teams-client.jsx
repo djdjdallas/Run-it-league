@@ -100,10 +100,28 @@ export default function TeamsClient({ initialTeams }) {
   const handleDelete = async (teamId) => {
     if (!confirm("Are you sure you want to delete this team?")) return
 
+    const supabase = createClient()
+
+    const { count: gameCount, error: gameErr } = await supabase
+      .from("games")
+      .select("id", { count: "exact", head: true })
+      .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+
+    if (gameErr) {
+      alert("Failed to check team games: " + gameErr.message)
+      return
+    }
+
+    if (gameCount && gameCount > 0) {
+      alert(
+        `Can't delete this team — it's linked to ${gameCount} game${gameCount === 1 ? "" : "s"}. Delete those games first (Admin → Games), then try again.`
+      )
+      return
+    }
+
     const prev = teams
     setTeams(teams.filter((t) => t.id !== teamId))
 
-    const supabase = createClient()
     const { error } = await supabase.from("teams").delete().eq("id", teamId)
 
     if (error) {
