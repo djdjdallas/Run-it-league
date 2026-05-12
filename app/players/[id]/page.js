@@ -305,12 +305,21 @@ export default async function PlayerDetailPage({ params }) {
                         </TableCell>
                         <TableCell className="text-center hidden lg:table-cell text-sm">
                           {log.fg_made}-{log.fg_attempted}
+                          <span className="text-white/40 text-xs ml-1">
+                            ({calculatePercentage(log.fg_made, log.fg_attempted)}%)
+                          </span>
                         </TableCell>
                         <TableCell className="text-center hidden lg:table-cell text-sm">
                           {log.three_made}-{log.three_attempted}
+                          <span className="text-white/40 text-xs ml-1">
+                            ({calculatePercentage(log.three_made, log.three_attempted)}%)
+                          </span>
                         </TableCell>
                         <TableCell className="text-center hidden lg:table-cell text-sm">
                           {log.ft_made}-{log.ft_attempted}
+                          <span className="text-white/40 text-xs ml-1">
+                            ({calculatePercentage(log.ft_made, log.ft_attempted)}%)
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))}

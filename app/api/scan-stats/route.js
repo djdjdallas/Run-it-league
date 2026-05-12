@@ -19,70 +19,72 @@ export async function POST(request) {
       )
     }
 
-    const prompt = `Analyze this basketball stat sheet image and extract all player statistics.
+    const prompt = `You are reading a HoopCoach basketball stat sheet. This sheet tracks ONE TEAM per page. Each row is a player; each stat column has pre-printed numbers (1, 2, 3, ...) that the scorekeeper marks by hand to tally events.
 
-Return a JSON object with this exact structure:
+NOTATION (critical — read carefully):
+- FG column: a CIRCLE around a pre-printed number = one shot attempt. A SLASH through that number = the shot was MADE (a made shot is also an attempt, so it counts as both).
+- 3-PT column: same convention — CIRCLE = 3-point attempt, SLASH = 3-point made.
+- Rebounds column: SLASH through a number = one offensive rebound. CIRCLE around a number = one defensive rebound.
+- Turnovers, Assists, Steals columns: each marked (circled or slashed) number = one occurrence of that stat.
+- Unmarked pre-printed numbers do NOT count — they are just the printed tally template.
+
+WHAT TO EXTRACT per player:
+- name: player name written in the "Player" column (string, or null if blank)
+- number: jersey number from the "No." column (integer, or null if blank)
+- fg_attempted: count of ALL marked (circled OR slashed) numbers in the FG column
+- fg_made: count of SLASHED numbers in the FG column
+- three_attempted: count of ALL marked numbers in the 3-PT column
+- three_made: count of SLASHED numbers in the 3-PT column
+- rebounds: (offensive rebounds = count of SLASHED in Rebounds) + (defensive rebounds = count of CIRCLED in Rebounds). Return the sum.
+- turnovers: count of marked numbers in the Turnovers column
+- assists: count of marked numbers in the Assists column
+- steals: count of marked numbers in the Steals column
+- points: COMPUTE this as (2 × fg_made) + three_made. The fg_made count already INCLUDES three-pointers per standard basketball convention, so each 3-pt make contributes 2 from FG plus 1 extra from 3-PT. If you have reason to believe the scorekeeper tracked 2-pointers and 3-pointers in separate columns (i.e. FG column only contains 2-pointers), compute (2 × fg_made) + (3 × three_made) instead and note this in a comment.
+
+SUMMARY COLUMNS on the right side (FGM/FGA, 3-PTM/Att, OFF REB, DEF REB, A/TO Ratio):
+- These may be filled in by hand as totals (e.g. "7/14" meaning 7 made / 14 attempted).
+- IF a handwritten summary number is clearly legible, PREFER it over counting tally marks — it's more reliable.
+- IF the summary is blank, fall back to counting tallies as described above.
+
+STATS THIS SHEET DOES NOT TRACK — always return null for these fields:
+- minutes, blocks, fouls, ft_made, ft_attempted
+
+TEAM CONTEXT:
+- This sheet shows ONE team. Put all extracted players in "home_team.players".
+- Set "away_team" to null. The downstream consumer matches players to rosters by name.
+- Read the "Opponent" field to fill home_team.name if the team name is written there — otherwise null.
+- Sum points across all players to fill total_score (or null if you can't compute it).
+
+OUTPUT — return ONLY this JSON, no prose:
 {
   "home_team": {
-    "name": "Team Name",
+    "name": "Team Name or null",
     "players": [
       {
         "name": "Player Name",
         "number": 23,
-        "minutes": 32,
+        "minutes": null,
         "points": 18,
         "rebounds": 7,
         "assists": 4,
         "steals": 2,
-        "blocks": 1,
+        "blocks": null,
         "turnovers": 3,
-        "fouls": 2,
+        "fouls": null,
         "fg_made": 7,
         "fg_attempted": 14,
         "three_made": 2,
         "three_attempted": 5,
-        "ft_made": 2,
-        "ft_attempted": 2
+        "ft_made": null,
+        "ft_attempted": null
       }
     ],
     "total_score": 85
   },
-  "away_team": {
-    "name": "Team Name",
-    "players": [
-      {
-        "name": "Player Name",
-        "number": 10,
-        "minutes": 28,
-        "points": 15,
-        "rebounds": 5,
-        "assists": 3,
-        "steals": 1,
-        "blocks": 0,
-        "turnovers": 2,
-        "fouls": 3,
-        "fg_made": 6,
-        "fg_attempted": 12,
-        "three_made": 1,
-        "three_attempted": 4,
-        "ft_made": 2,
-        "ft_attempted": 3
-      }
-    ],
-    "total_score": 78
-  }
+  "away_team": null
 }
 
-Important instructions:
-- If any stat is illegible, use null for that value
-- If you can't determine a player's number, use null
-- Extract what you can read clearly
-- Include all players visible on the stat sheet
-- If the sheet only shows one team, include that team's data and set the other team to null
-- Make sure to calculate totals correctly if shown
-- For shooting stats (FG, 3PT, FT), look for formats like "7-14" meaning 7 made out of 14 attempted
-
-Return ONLY the JSON object, no additional text or explanation.`
+If a specific value is illegible or ambiguous, use null for that field — do not guess. Skip player rows where the Player name AND number are both blank.`
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -94,6 +96,7 @@ Return ONLY the JSON object, no additional text or explanation.`
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 4096,
+        temperature: 0,
         messages: [
           {
             role: "user",

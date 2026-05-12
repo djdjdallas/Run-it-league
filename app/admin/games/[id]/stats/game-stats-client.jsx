@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table"
 import { StatScanner } from "@/components/stat-scanner"
 import { ArrowLeft, Save, Check, Loader2 } from "lucide-react"
-import { formatDate } from "@/lib/utils"
+import { formatDate, calculatePercentage } from "@/lib/utils"
 
 export default function GameStatsClient({
   game,
@@ -108,70 +108,72 @@ export default function GameStatsClient({
     if (uploadedUrl) setScannedImageUrl(uploadedUrl)
     setActiveTab("review")
 
-    // Try to match extracted players to roster
-    if (extractedStats.home_team?.players) {
-      const newHomeStats = { ...homeStats }
-      extractedStats.home_team.players.forEach((extracted) => {
-        const match = homeRoster.find(
-          (p) =>
-            p.name.toLowerCase().includes(extracted.name?.toLowerCase() || "") ||
-            extracted.name?.toLowerCase().includes(p.name.toLowerCase()) ||
-            p.number === extracted.number
+    // Stat sheet is one team per page; the AI returns all extracted players
+    // under home_team.players. Try each player against BOTH rosters and route
+    // to whichever has a match.
+    const allExtracted = [
+      ...(extractedStats.home_team?.players || []),
+      ...(extractedStats.away_team?.players || []),
+    ]
+
+    const matchPlayer = (extracted, roster) => {
+      const extractedName = (extracted.name || "").toLowerCase().trim()
+      if (!extractedName && extracted.number == null) return null
+      return roster.find((p) => {
+        const rosterName = (p.name || "").toLowerCase().trim()
+        if (!rosterName) return false
+        return (
+          (extractedName && (rosterName === extractedName ||
+            rosterName.includes(extractedName) ||
+            extractedName.includes(rosterName))) ||
+          (extracted.number != null && p.number === extracted.number)
         )
-        if (match) {
-          newHomeStats[match.id] = {
-            ...createEmptyStat(match.id),
-            minutes: extracted.minutes || 0,
-            points: extracted.points || 0,
-            rebounds: extracted.rebounds || 0,
-            assists: extracted.assists || 0,
-            steals: extracted.steals || 0,
-            blocks: extracted.blocks || 0,
-            turnovers: extracted.turnovers || 0,
-            fouls: extracted.fouls || 0,
-            fg_made: extracted.fg_made || 0,
-            fg_attempted: extracted.fg_attempted || 0,
-            three_made: extracted.three_made || 0,
-            three_attempted: extracted.three_attempted || 0,
-            ft_made: extracted.ft_made || 0,
-            ft_attempted: extracted.ft_attempted || 0,
-          }
-        }
-      })
-      setHomeStats(newHomeStats)
+      }) || null
     }
 
-    if (extractedStats.away_team?.players) {
-      const newAwayStats = { ...awayStats }
-      extractedStats.away_team.players.forEach((extracted) => {
-        const match = awayRoster.find(
-          (p) =>
-            p.name.toLowerCase().includes(extracted.name?.toLowerCase() || "") ||
-            extracted.name?.toLowerCase().includes(p.name.toLowerCase()) ||
-            p.number === extracted.number
-        )
-        if (match) {
-          newAwayStats[match.id] = {
-            ...createEmptyStat(match.id),
-            minutes: extracted.minutes || 0,
-            points: extracted.points || 0,
-            rebounds: extracted.rebounds || 0,
-            assists: extracted.assists || 0,
-            steals: extracted.steals || 0,
-            blocks: extracted.blocks || 0,
-            turnovers: extracted.turnovers || 0,
-            fouls: extracted.fouls || 0,
-            fg_made: extracted.fg_made || 0,
-            fg_attempted: extracted.fg_attempted || 0,
-            three_made: extracted.three_made || 0,
-            three_attempted: extracted.three_attempted || 0,
-            ft_made: extracted.ft_made || 0,
-            ft_attempted: extracted.ft_attempted || 0,
-          }
+    const toStatRow = (matchId, extracted) => ({
+      ...createEmptyStat(matchId),
+      minutes: extracted.minutes || 0,
+      points: extracted.points || 0,
+      rebounds: extracted.rebounds || 0,
+      assists: extracted.assists || 0,
+      steals: extracted.steals || 0,
+      blocks: extracted.blocks || 0,
+      turnovers: extracted.turnovers || 0,
+      fouls: extracted.fouls || 0,
+      fg_made: extracted.fg_made || 0,
+      fg_attempted: extracted.fg_attempted || 0,
+      three_made: extracted.three_made || 0,
+      three_attempted: extracted.three_attempted || 0,
+      ft_made: extracted.ft_made || 0,
+      ft_attempted: extracted.ft_attempted || 0,
+    })
+
+    const newHomeStats = { ...homeStats }
+    const newAwayStats = { ...awayStats }
+
+    allExtracted.forEach((extracted) => {
+      const homeMatch = matchPlayer(extracted, homeRoster)
+      const awayMatch = matchPlayer(extracted, awayRoster)
+      if (homeMatch && !awayMatch) {
+        newHomeStats[homeMatch.id] = toStatRow(homeMatch.id, extracted)
+      } else if (awayMatch && !homeMatch) {
+        newAwayStats[awayMatch.id] = toStatRow(awayMatch.id, extracted)
+      } else if (homeMatch && awayMatch) {
+        // Ambiguous — prefer the side whose name matches exactly.
+        const ext = (extracted.name || "").toLowerCase().trim()
+        const homeExact = (homeMatch.name || "").toLowerCase().trim() === ext
+        const awayExact = (awayMatch.name || "").toLowerCase().trim() === ext
+        if (awayExact && !homeExact) {
+          newAwayStats[awayMatch.id] = toStatRow(awayMatch.id, extracted)
+        } else {
+          newHomeStats[homeMatch.id] = toStatRow(homeMatch.id, extracted)
         }
-      })
-      setAwayStats(newAwayStats)
-    }
+      }
+    })
+
+    setHomeStats(newHomeStats)
+    setAwayStats(newAwayStats)
   }
 
   const handleSave = async () => {
@@ -343,6 +345,11 @@ export default function GameStatsClient({
             className="w-12 text-center"
             min="0"
           />
+          <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">
+            {stats.fg_attempted > 0
+              ? `${calculatePercentage(stats.fg_made, stats.fg_attempted)}%`
+              : "—"}
+          </span>
         </div>
       </TableCell>
       <TableCell>
@@ -362,6 +369,11 @@ export default function GameStatsClient({
             className="w-12 text-center"
             min="0"
           />
+          <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">
+            {stats.three_attempted > 0
+              ? `${calculatePercentage(stats.three_made, stats.three_attempted)}%`
+              : "—"}
+          </span>
         </div>
       </TableCell>
       <TableCell>
@@ -381,6 +393,11 @@ export default function GameStatsClient({
             className="w-12 text-center"
             min="0"
           />
+          <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">
+            {stats.ft_attempted > 0
+              ? `${calculatePercentage(stats.ft_made, stats.ft_attempted)}%`
+              : "—"}
+          </span>
         </div>
       </TableCell>
     </TableRow>

@@ -158,21 +158,50 @@ export default function ScanStatsClient({ games }) {
         console.error("Upload failed (non-fatal):", e)
       }
 
-      // 5. Match extracted players to rosters
+      // 5. Match extracted players to rosters.
+      // Stat sheet is one team per page, so we try BOTH rosters per extracted
+      // player and route to whichever matches.
+      const allExtracted = [
+        ...(data.stats?.home_team?.players || []),
+        ...(data.stats?.away_team?.players || []),
+      ]
       const homeMatches = []
-      const homeUnmatched = []
-      ;(data.stats?.home_team?.players || []).forEach((p) => {
-        const match = matchExtractedToRoster(p, homeRoster)
-        if (match) homeMatches.push({ player: match, extracted: p })
-        else homeUnmatched.push(p)
-      })
-
       const awayMatches = []
+      const homeUnmatched = []
       const awayUnmatched = []
-      ;(data.stats?.away_team?.players || []).forEach((p) => {
-        const match = matchExtractedToRoster(p, awayRoster)
-        if (match) awayMatches.push({ player: match, extracted: p })
-        else awayUnmatched.push(p)
+      const usedHomeIds = new Set()
+      const usedAwayIds = new Set()
+
+      allExtracted.forEach((p) => {
+        const homeMatch = matchExtractedToRoster(p, homeRoster)
+        const awayMatch = matchExtractedToRoster(p, awayRoster)
+        if (homeMatch && !usedHomeIds.has(homeMatch.id) && !awayMatch) {
+          homeMatches.push({ player: homeMatch, extracted: p })
+          usedHomeIds.add(homeMatch.id)
+        } else if (awayMatch && !usedAwayIds.has(awayMatch.id) && !homeMatch) {
+          awayMatches.push({ player: awayMatch, extracted: p })
+          usedAwayIds.add(awayMatch.id)
+        } else if (homeMatch && awayMatch) {
+          // Ambiguous (e.g. matched on jersey number that exists on both teams).
+          // Prefer the side where the name match is exact.
+          const ext = (p.name || "").toLowerCase().trim()
+          const homeExact = (homeMatch.name || "").toLowerCase().trim() === ext
+          const awayExact = (awayMatch.name || "").toLowerCase().trim() === ext
+          if (homeExact && !awayExact && !usedHomeIds.has(homeMatch.id)) {
+            homeMatches.push({ player: homeMatch, extracted: p })
+            usedHomeIds.add(homeMatch.id)
+          } else if (awayExact && !homeExact && !usedAwayIds.has(awayMatch.id)) {
+            awayMatches.push({ player: awayMatch, extracted: p })
+            usedAwayIds.add(awayMatch.id)
+          } else if (!usedHomeIds.has(homeMatch.id)) {
+            homeMatches.push({ player: homeMatch, extracted: p })
+            usedHomeIds.add(homeMatch.id)
+          } else {
+            homeUnmatched.push(p)
+          }
+        } else {
+          homeUnmatched.push(p)
+        }
       })
 
       setResult({
