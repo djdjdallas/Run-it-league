@@ -101,14 +101,23 @@ If a specific value is illegible or ambiguous, use null for that field — do no
           {
             role: "user",
             content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: mediaType || "image/jpeg",
-                  data: image,
-                },
-              },
+              mediaType === "application/pdf"
+                ? {
+                    type: "document",
+                    source: {
+                      type: "base64",
+                      media_type: "application/pdf",
+                      data: image,
+                    },
+                  }
+                : {
+                    type: "image",
+                    source: {
+                      type: "base64",
+                      media_type: mediaType || "image/jpeg",
+                      data: image,
+                    },
+                  },
               {
                 type: "text",
                 text: prompt,

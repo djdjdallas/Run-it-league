@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select"
 import {
   Camera,
   FileImage,
+  FileText,
   Loader2,
   X,
   Check,
@@ -75,20 +76,27 @@ export default function ScanStatsClient({ games }) {
 
   const handleFile = (f) => {
     if (!f) return
-    if (!f.type.startsWith("image/")) {
-      setError("Please select an image file")
+    const isImage = f.type.startsWith("image/")
+    const isPdf = f.type === "application/pdf"
+    if (!isImage && !isPdf) {
+      setError("Please select an image or PDF file")
       return
     }
     if (f.size > 10 * 1024 * 1024) {
-      setError("Image must be under 10MB")
+      setError("File must be under 10MB")
       return
     }
     setFile(f)
     setError(null)
     setResult(null)
-    const reader = new FileReader()
-    reader.onload = (e) => setPreview(e.target.result)
-    reader.readAsDataURL(f)
+    if (isImage) {
+      const reader = new FileReader()
+      reader.onload = (e) => setPreview(e.target.result)
+      reader.readAsDataURL(f)
+    } else {
+      // PDF — skip image preview, just show file metadata
+      setPreview(null)
+    }
   }
 
   const clearImage = () => {
@@ -311,11 +319,11 @@ export default function ScanStatsClient({ games }) {
           <CardTitle className="text-lg">2. Stat sheet photo</CardTitle>
         </CardHeader>
         <CardContent>
-          {!preview ? (
+          {!file ? (
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Camera className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm text-muted-foreground mb-4">
-                Take a photo or choose a file (up to 10MB)
+                Take a photo or choose a file — JPG, PNG, HEIC, or PDF (up to 10MB)
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 <Button
@@ -344,7 +352,7 @@ export default function ScanStatsClient({ games }) {
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   className="hidden"
                   onChange={(e) => handleFile(e.target.files[0])}
                 />
@@ -358,11 +366,23 @@ export default function ScanStatsClient({ games }) {
           ) : (
             <div className="space-y-3">
               <div className="relative">
-                <img
-                  src={preview}
-                  alt="Stat sheet"
-                  className="w-full rounded-lg border max-h-[500px] object-contain bg-muted"
-                />
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Stat sheet"
+                    className="w-full rounded-lg border max-h-[500px] object-contain bg-muted"
+                  />
+                ) : (
+                  <div className="w-full rounded-lg border bg-muted p-8 flex items-center gap-4">
+                    <FileText className="h-10 w-10 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{file.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        PDF — {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <Button
                   variant="destructive"
                   size="icon"

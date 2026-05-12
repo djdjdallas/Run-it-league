@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Upload, X, Loader2, Camera, FileImage } from "lucide-react"
+import { Upload, X, Loader2, Camera, FileImage, FileText } from "lucide-react"
 
 export function StatScanner({ onStatsExtracted }) {
   const [file, setFile] = useState(null)
@@ -19,8 +19,10 @@ export function StatScanner({ onStatsExtracted }) {
   const handleFile = (selectedFile) => {
     if (!selectedFile) return
 
-    if (!selectedFile.type.startsWith("image/")) {
-      setError("Please upload an image file")
+    const isImage = selectedFile.type.startsWith("image/")
+    const isPdf = selectedFile.type === "application/pdf"
+    if (!isImage && !isPdf) {
+      setError("Please upload an image or PDF file")
       return
     }
 
@@ -32,9 +34,14 @@ export function StatScanner({ onStatsExtracted }) {
     setFile(selectedFile)
     setError(null)
 
-    const reader = new FileReader()
-    reader.onload = (e) => setPreview(e.target.result)
-    reader.readAsDataURL(selectedFile)
+    if (isImage) {
+      const reader = new FileReader()
+      reader.onload = (e) => setPreview(e.target.result)
+      reader.readAsDataURL(selectedFile)
+    } else {
+      // PDF — skip image preview
+      setPreview(null)
+    }
   }
 
   const handleDrop = useCallback((e) => {
@@ -137,7 +144,7 @@ export function StatScanner({ onStatsExtracted }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!preview ? (
+        {!file ? (
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
               dragActive
@@ -157,7 +164,7 @@ export function StatScanner({ onStatsExtracted }) {
                   Scan a handwritten stat sheet
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Take a photo or choose a file (JPG, PNG, HEIC — up to 10MB)
+                  Take a photo or choose a file (JPG, PNG, HEIC, PDF — up to 10MB)
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -187,7 +194,7 @@ export function StatScanner({ onStatsExtracted }) {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   className="hidden"
                   onChange={(e) => handleFile(e.target.files[0])}
                 />
@@ -197,11 +204,23 @@ export function StatScanner({ onStatsExtracted }) {
         ) : (
           <div className="space-y-4">
             <div className="relative">
-              <img
-                src={preview}
-                alt="Stat sheet preview"
-                className="w-full rounded-lg border max-h-96 object-contain bg-muted"
-              />
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Stat sheet preview"
+                  className="w-full rounded-lg border max-h-96 object-contain bg-muted"
+                />
+              ) : (
+                <div className="w-full rounded-lg border bg-muted p-8 flex items-center gap-4">
+                  <FileText className="h-10 w-10 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{file.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      PDF — {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                  </div>
+                </div>
+              )}
               <Button
                 variant="destructive"
                 size="icon"
