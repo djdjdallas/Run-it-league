@@ -491,13 +491,13 @@ function TeamPreview({ label, matches, unmatched }) {
           {matches.map(({ player, extracted }) => (
             <div
               key={player.id}
-              className="flex justify-between items-center p-2 bg-green-50 border border-green-200 rounded text-sm"
+              className="flex justify-between items-center p-2 bg-green-500/10 border border-green-500/30 rounded text-sm text-green-200"
             >
               <span className="flex items-center gap-2">
-                <Check className="h-3 w-3 text-green-600" />
+                <Check className="h-3 w-3 text-green-400" />
                 #{player.number} {player.name}
               </span>
-              <span className="font-mono text-xs">
+              <span className="font-mono text-xs text-green-300/80">
                 {extracted.points || 0} pts / {extracted.rebounds || 0} reb /{" "}
                 {extracted.assists || 0} ast
               </span>
@@ -513,14 +513,14 @@ function TeamPreview({ label, matches, unmatched }) {
           {unmatched.map((p, i) => (
             <div
               key={i}
-              className="flex justify-between items-center p-2 bg-yellow-50 border border-yellow-200 rounded text-sm"
+              className="flex justify-between items-center p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm text-yellow-200"
             >
               <span className="flex items-center gap-2">
-                <AlertCircle className="h-3 w-3 text-yellow-600" />
+                <AlertCircle className="h-3 w-3 text-yellow-400" />
                 {p.number ? `#${p.number} ` : ""}
                 {p.name || "(no name)"}
               </span>
-              <span className="font-mono text-xs">
+              <span className="font-mono text-xs text-yellow-300/80">
                 {p.points || 0} pts
               </span>
             </div>
