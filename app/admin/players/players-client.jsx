@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
@@ -211,7 +212,14 @@ export default function PlayersClient({ initialPlayers, teams }) {
               {filteredPlayers.map((player) => (
                 <TableRow key={player.id}>
                   <TableCell className="font-medium">{player.number}</TableCell>
-                  <TableCell className="font-medium">{player.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/admin/players/${player.id}`}
+                      className="hover:text-neon transition-colors"
+                    >
+                      {player.name}
+                    </Link>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {getTeamName(player.team_id)}
                   </TableCell>

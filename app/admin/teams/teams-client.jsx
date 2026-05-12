@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import { Card, CardContent } from "@/components/ui/card"
@@ -181,7 +182,14 @@ export default function TeamsClient({ initialTeams }) {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium">{team.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/admin/teams/${team.id}`}
+                      className="hover:text-neon transition-colors"
+                    >
+                      {team.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{team.abbreviation}</TableCell>
                   <TableCell className="text-center">{team.wins}</TableCell>
                   <TableCell className="text-center">{team.losses}</TableCell>
