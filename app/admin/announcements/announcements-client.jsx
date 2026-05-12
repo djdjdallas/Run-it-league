@@ -16,6 +16,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, Pin } from "lucide-react"
 import { formatDate } from "@/lib/utils"
@@ -26,6 +27,7 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingAnnouncement, setEditingAnnouncement] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -84,17 +86,18 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
     router.refresh()
   }
 
-  const handleDelete = async (announcementId) => {
-    if (!confirm("Are you sure you want to delete this announcement?")) return
+  const confirmDelete = async () => {
+    const announcement = deleteTarget
+    if (!announcement) return
 
     const prev = announcements
-    setAnnouncements(announcements.filter((a) => a.id !== announcementId))
+    setAnnouncements(announcements.filter((a) => a.id !== announcement.id))
 
     const supabase = createClient()
     const { error } = await supabase
       .from("announcements")
       .delete()
-      .eq("id", announcementId)
+      .eq("id", announcement.id)
 
     if (error) {
       alert("Failed to delete announcement: " + error.message)
@@ -194,7 +197,7 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(announcement.id)}
+                    onClick={() => setDeleteTarget(announcement)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -281,6 +284,19 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete announcement?"
+        description={
+          deleteTarget
+            ? `This permanently removes "${deleteTarget.title}".`
+            : ""
+        }
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

@@ -23,6 +23,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   UserPlus,
   Search,
@@ -161,11 +162,15 @@ export default function RegistrationsClient({
 
   // ---- Manual mark as paid ----
   const [markingPaid, setMarkingPaid] = useState(null)
+  const [markPaidTarget, setMarkPaidTarget] = useState(null)
 
-  const handleMarkPaid = async (regId) => {
-    if (!confirm("Mark this registration as paid? This should only be used if Stripe didn't pick up the payment.")) {
-      return
-    }
+  const handleMarkPaid = (regId) => {
+    setMarkPaidTarget(regId)
+  }
+
+  const confirmMarkPaid = async () => {
+    const regId = markPaidTarget
+    if (!regId) return
 
     setMarkingPaid(regId)
     try {
@@ -944,6 +949,16 @@ export default function RegistrationsClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!markPaidTarget}
+        onOpenChange={(v) => !v && setMarkPaidTarget(null)}
+        title="Mark as paid?"
+        description="This manually marks the registration as paid. Only use this if Stripe didn't pick up the payment — the captain will receive the roster entry link."
+        confirmLabel="Mark as paid"
+        variant="default"
+        onConfirm={confirmMarkPaid}
+      />
     </div>
   )
 }

@@ -17,6 +17,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Pencil, Trash2, Star, Camera } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
 import { formatDate } from "@/lib/utils"
@@ -36,6 +37,7 @@ export default function GalleryAdminClient({ initialPhotos }) {
   const [editingPhoto, setEditingPhoto] = useState(null)
   const [saving, setSaving] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState("all")
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -116,17 +118,18 @@ export default function GalleryAdminClient({ initialPhotos }) {
     router.refresh()
   }
 
-  const handleDelete = async (photoId) => {
-    if (!confirm("Are you sure you want to delete this photo?")) return
+  const confirmDelete = async () => {
+    const photo = deleteTarget
+    if (!photo) return
 
     const prev = photos
-    setPhotos(photos.filter((p) => p.id !== photoId))
+    setPhotos(photos.filter((p) => p.id !== photo.id))
 
     const supabase = createClient()
     const { error } = await supabase
       .from("gallery_photos")
       .delete()
-      .eq("id", photoId)
+      .eq("id", photo.id)
 
     if (error) {
       alert("Failed to delete photo: " + error.message)
@@ -244,7 +247,7 @@ export default function GalleryAdminClient({ initialPhotos }) {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => handleDelete(photo.id)}
+                    onClick={() => setDeleteTarget(photo)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -359,6 +362,19 @@ export default function GalleryAdminClient({ initialPhotos }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete photo?"
+        description={
+          deleteTarget
+            ? `This permanently removes ${deleteTarget.title ? `"${deleteTarget.title}"` : "this photo"} from the gallery.`
+            : ""
+        }
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

@@ -16,6 +16,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Pencil, Trash2, ExternalLink, GripVertical } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
 
@@ -25,6 +26,7 @@ export default function SponsorsClient({ initialSponsors }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSponsor, setEditingSponsor] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [formData, setFormData] = useState({
     name: "",
     logo_url: "",
@@ -89,17 +91,18 @@ export default function SponsorsClient({ initialSponsors }) {
     router.refresh()
   }
 
-  const handleDelete = async (sponsorId) => {
-    if (!confirm("Are you sure you want to delete this sponsor?")) return
+  const confirmDelete = async () => {
+    const sponsor = deleteTarget
+    if (!sponsor) return
 
     const prev = sponsors
-    setSponsors(sponsors.filter((s) => s.id !== sponsorId))
+    setSponsors(sponsors.filter((s) => s.id !== sponsor.id))
 
     const supabase = createClient()
     const { error } = await supabase
       .from("sponsors")
       .delete()
-      .eq("id", sponsorId)
+      .eq("id", sponsor.id)
 
     if (error) {
       alert("Failed to delete sponsor: " + error.message)
@@ -221,7 +224,7 @@ export default function SponsorsClient({ initialSponsors }) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(sponsor.id)}
+                    onClick={() => setDeleteTarget(sponsor)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
@@ -332,6 +335,19 @@ export default function SponsorsClient({ initialSponsors }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete sponsor?"
+        description={
+          deleteTarget
+            ? `This permanently removes "${deleteTarget.name}" from your sponsor list.`
+            : ""
+        }
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

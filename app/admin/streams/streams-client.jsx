@@ -26,6 +26,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { ImageUpload } from "@/components/image-upload"
 import {
   Plus,
@@ -64,6 +65,7 @@ export default function StreamsClient({ initialStreams, games }) {
   const [saving, setSaving] = useState(false)
   const [togglingLive, setTogglingLive] = useState(null)
   const [formData, setFormData] = useState(emptyForm)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -140,17 +142,18 @@ export default function StreamsClient({ initialStreams, games }) {
     router.refresh()
   }
 
-  const handleDelete = async (streamId) => {
-    if (!confirm("Delete this stream?")) return
+  const confirmDelete = async () => {
+    const stream = deleteTarget
+    if (!stream) return
 
     const prev = streams
-    setStreams(streams.filter((s) => s.id !== streamId))
+    setStreams(streams.filter((s) => s.id !== stream.id))
 
     const supabase = createClient()
     const { error } = await supabase
       .from("live_streams")
       .delete()
-      .eq("id", streamId)
+      .eq("id", stream.id)
 
     if (error) {
       alert("Failed to delete stream: " + error.message)
@@ -318,7 +321,7 @@ export default function StreamsClient({ initialStreams, games }) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(stream.id)}
+                        onClick={() => setDeleteTarget(stream)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -480,6 +483,19 @@ export default function StreamsClient({ initialStreams, games }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete stream?"
+        description={
+          deleteTarget
+            ? `This permanently removes "${deleteTarget.title}" from the /live page.`
+            : ""
+        }
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

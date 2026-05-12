@@ -25,6 +25,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
@@ -35,6 +36,7 @@ export default function GamesClient({ initialGames, teams }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingGame, setEditingGame] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [formData, setFormData] = useState({
     home_team_id: "",
     away_team_id: "",
@@ -125,14 +127,15 @@ export default function GamesClient({ initialGames, teams }) {
     router.refresh()
   }
 
-  const handleDelete = async (gameId) => {
-    if (!confirm("Are you sure you want to delete this game?")) return
+  const confirmDelete = async () => {
+    const game = deleteTarget
+    if (!game) return
 
     const prev = games
-    setGames(games.filter((g) => g.id !== gameId))
+    setGames(games.filter((g) => g.id !== game.id))
 
     const supabase = createClient()
-    const { error } = await supabase.from("games").delete().eq("id", gameId)
+    const { error } = await supabase.from("games").delete().eq("id", game.id)
 
     if (error) {
       alert("Failed to delete game: " + error.message)
@@ -237,7 +240,7 @@ export default function GamesClient({ initialGames, teams }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(game.id)}
+                      onClick={() => setDeleteTarget(game)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -399,6 +402,19 @@ export default function GamesClient({ initialGames, teams }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete game?"
+        description={
+          deleteTarget
+            ? `This permanently removes ${deleteTarget.away_team?.name || "Away"} @ ${deleteTarget.home_team?.name || "Home"} on ${formatDate(deleteTarget.game_date)}, along with all player stats from this game.`
+            : ""
+        }
+        confirmLabel="Delete game"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

@@ -23,6 +23,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
 
@@ -32,6 +33,8 @@ export default function TeamsClient({ initialTeams }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTeam, setEditingTeam] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [blockedDelete, setBlockedDelete] = useState(null)
   const [formData, setFormData] = useState({
     name: "",
     abbreviation: "",
@@ -97,15 +100,16 @@ export default function TeamsClient({ initialTeams }) {
     router.refresh()
   }
 
-  const handleDelete = async (teamId) => {
-    if (!confirm("Are you sure you want to delete this team?")) return
+  const confirmDelete = async () => {
+    const team = deleteTarget
+    if (!team) return
 
     const supabase = createClient()
 
     const { count: gameCount, error: gameErr } = await supabase
       .from("games")
       .select("id", { count: "exact", head: true })
-      .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+      .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
 
     if (gameErr) {
       alert("Failed to check team games: " + gameErr.message)
@@ -113,16 +117,15 @@ export default function TeamsClient({ initialTeams }) {
     }
 
     if (gameCount && gameCount > 0) {
-      alert(
-        `Can't delete this team — it's linked to ${gameCount} game${gameCount === 1 ? "" : "s"}. Delete those games first (Admin → Games), then try again.`
-      )
+      setDeleteTarget(null)
+      setBlockedDelete({ team, gameCount })
       return
     }
 
     const prev = teams
-    setTeams(teams.filter((t) => t.id !== teamId))
+    setTeams(teams.filter((t) => t.id !== team.id))
 
-    const { error } = await supabase.from("teams").delete().eq("id", teamId)
+    const { error } = await supabase.from("teams").delete().eq("id", team.id)
 
     if (error) {
       alert("Failed to delete team: " + error.message)
@@ -207,7 +210,7 @@ export default function TeamsClient({ initialTeams }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(team.id)}
+                      onClick={() => setDeleteTarget(team)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -330,6 +333,34 @@ export default function TeamsClient({ initialTeams }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete team?"
+        description={
+          deleteTarget
+            ? `This permanently removes "${deleteTarget.name}". Players assigned to this team will become free agents.`
+            : ""
+        }
+        confirmLabel="Delete team"
+        onConfirm={confirmDelete}
+      />
+
+      <ConfirmDialog
+        open={!!blockedDelete}
+        onOpenChange={(v) => !v && setBlockedDelete(null)}
+        title="Can't delete this team"
+        description={
+          blockedDelete
+            ? `"${blockedDelete.team.name}" is linked to ${blockedDelete.gameCount} game${blockedDelete.gameCount === 1 ? "" : "s"}. Delete those games first (Admin → Games), then try again.`
+            : ""
+        }
+        confirmLabel="Got it"
+        cancelLabel="Close"
+        variant="default"
+        onConfirm={() => setBlockedDelete(null)}
+      />
     </div>
   )
 }

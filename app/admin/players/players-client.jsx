@@ -24,6 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, Search } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
@@ -36,6 +37,7 @@ export default function PlayersClient({ initialPlayers, teams }) {
   const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [teamFilter, setTeamFilter] = useState("all")
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [formData, setFormData] = useState({
     name: "",
     number: "",
@@ -127,17 +129,18 @@ export default function PlayersClient({ initialPlayers, teams }) {
     router.refresh()
   }
 
-  const handleDelete = async (playerId) => {
-    if (!confirm("Are you sure you want to delete this player?")) return
+  const confirmDelete = async () => {
+    const player = deleteTarget
+    if (!player) return
 
     const prev = players
-    setPlayers(players.filter((p) => p.id !== playerId))
+    setPlayers(players.filter((p) => p.id !== player.id))
 
     const supabase = createClient()
     const { error } = await supabase
       .from("players")
       .delete()
-      .eq("id", playerId)
+      .eq("id", player.id)
 
     if (error) {
       alert("Failed to delete player: " + error.message)
@@ -234,7 +237,7 @@ export default function PlayersClient({ initialPlayers, teams }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(player.id)}
+                      onClick={() => setDeleteTarget(player)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -372,6 +375,19 @@ export default function PlayersClient({ initialPlayers, teams }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Delete player?"
+        description={
+          deleteTarget
+            ? `This permanently removes "${deleteTarget.name}" and all their game stats.`
+            : ""
+        }
+        confirmLabel="Delete player"
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }
