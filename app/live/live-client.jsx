@@ -1,20 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { Video, Calendar, Radio, Play, Clock, ChevronRight } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
+import { normalizeStreamUrl } from "@/lib/stream-url"
 
 export default function LiveClient({ streams, sponsors }) {
   const [selectedStream, setSelectedStream] = useState(null)
+  const [host, setHost] = useState("")
+
+  useEffect(() => {
+    setHost(window.location.hostname)
+  }, [])
 
   const liveStreams = streams.filter((s) => s.is_live)
   const upcomingStreams = streams.filter((s) => !s.is_live)
 
   // Get the featured/active stream
   const activeStream = selectedStream || liveStreams[0] || upcomingStreams[0]
+  const embedUrl = activeStream
+    ? normalizeStreamUrl(activeStream.stream_url, activeStream.stream_type, host)
+    : null
 
   return (
     <div className="min-h-screen flex flex-col bg-[#080808]">
@@ -49,13 +58,18 @@ export default function LiveClient({ streams, sponsors }) {
                 <div className="bg-[#121212] border border-white/10">
                   {/* Video Embed */}
                   <div className="aspect-video bg-black overflow-hidden">
-                    {activeStream.is_live || selectedStream ? (
+                    {(activeStream.is_live || selectedStream) && embedUrl ? (
                       <iframe
-                        src={activeStream.stream_url}
+                        src={embedUrl}
                         className="w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
+                    ) : (activeStream.is_live || selectedStream) && !embedUrl ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-white bg-gradient-to-br from-gray-800 to-gray-900">
+                        <Video className="h-12 w-12 mb-4 text-white/40" />
+                        <p className="text-white/60">Loading player…</p>
+                      </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-white bg-gradient-to-br from-gray-800 to-gray-900">
                         {activeStream.thumbnail_url ? (

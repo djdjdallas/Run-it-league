@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
+import { normalizeStreamUrl, diagnoseStreamUrl, inferType } from "@/lib/stream-url"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -66,10 +67,33 @@ export default function StreamsClient({ initialStreams, games }) {
   const [togglingLive, setTogglingLive] = useState(null)
   const [formData, setFormData] = useState(emptyForm)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [host, setHost] = useState("")
+
+  useEffect(() => {
+    setHost(window.location.hostname)
+  }, [])
 
   const updateField = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value }
+      if (field === "stream_url") {
+        const detected = inferType(value)
+        if (detected && detected !== prev.stream_type) {
+          next.stream_type = detected
+        }
+      }
+      return next
+    })
   }
+
+  const previewUrl = useMemo(
+    () => normalizeStreamUrl(formData.stream_url, formData.stream_type, host),
+    [formData.stream_url, formData.stream_type, host]
+  )
+  const diagnosis = useMemo(
+    () => diagnoseStreamUrl(formData.stream_url, formData.stream_type, host),
+    [formData.stream_url, formData.stream_type, host]
+  )
 
   const openCreateDialog = () => {
     setEditingStream(null)
@@ -216,17 +240,20 @@ export default function StreamsClient({ initialStreams, games }) {
                   your phone and start a broadcast.
                 </li>
                 <li>
-                  Create a new stream here and paste the embed URL:
+                  Create a new stream here and paste <strong>any</strong> share or watch
+                  URL — we&apos;ll auto-convert it to an embeddable player:
                   <ul className="list-disc list-inside ml-4 mt-1">
                     <li>
                       <span className="font-mono text-xs">
-                        https://player.twitch.tv/?channel=YOUR_CHANNEL&amp;parent=YOUR_DOMAIN
+                        youtube.com/watch?v=… &nbsp;or&nbsp; youtu.be/… &nbsp;or&nbsp;
+                        youtube.com/live/…
                       </span>
                     </li>
                     <li>
-                      <span className="font-mono text-xs">
-                        https://www.youtube.com/embed/live_stream?channel=CHANNEL_ID
-                      </span>
+                      <span className="font-mono text-xs">twitch.tv/your-channel</span>
+                    </li>
+                    <li>
+                      <span className="font-mono text-xs">vimeo.com/12345678</span>
                     </li>
                   </ul>
                 </li>
@@ -415,25 +442,52 @@ export default function StreamsClient({ initialStreams, games }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="stream_url">Embed URL *</Label>
+              <Label htmlFor="stream_url">Stream URL</Label>
               <Input
                 id="stream_url"
                 value={formData.stream_url}
                 onChange={(e) => updateField("stream_url", e.target.value)}
-                placeholder="https://player.twitch.tv/?channel=...&parent=..."
+                placeholder="Paste any YouTube, Twitch, or Vimeo link"
                 className="font-mono text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                Twitch: use{" "}
-                <span className="font-mono">
-                  player.twitch.tv/?channel=X&amp;parent=your-domain.com
-                </span>
-                . YouTube: use{" "}
-                <span className="font-mono">
-                  youtube.com/embed/live_stream?channel=CHANNEL_ID
-                </span>
-                .
+                Paste a share / watch / channel URL — it&apos;s auto-converted to an
+                embed before saving. The preview below shows exactly what viewers will
+                see on /live.
               </p>
+
+              {formData.stream_url ? (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Embed preview
+                    </Label>
+                    {previewUrl && previewUrl !== formData.stream_url ? (
+                      <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[60%]">
+                        → {previewUrl}
+                      </span>
+                    ) : null}
+                  </div>
+                  {diagnosis.ok && previewUrl ? (
+                    <div className="aspect-video bg-black border border-border overflow-hidden">
+                      <iframe
+                        key={previewUrl}
+                        src={previewUrl}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-muted/30 border border-dashed border-border flex items-center justify-center p-4">
+                      <p className="text-xs text-muted-foreground text-center">
+                        {diagnosis.message ||
+                          "Can't generate a preview for this URL."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
 
             <div className="space-y-2">
