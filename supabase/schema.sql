@@ -537,6 +537,87 @@ create policy "Admin full access for team_roster_entries"
   to authenticated
   using (true);
 
+-- =====================================================
+-- TEAM RECORDS (auto-maintained from final game results)
+-- =====================================================
+
+-- Recalculate a single team's wins/losses from all of its final games.
+-- A team's record is always derived from games marked 'final' with both
+-- scores present. Ties (equal scores) count as neither a win nor a loss.
+create or replace function public.recalc_team_record(p_team_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_team_id is null then
+    return;
+  end if;
+
+  update teams t
+  set
+    wins = (
+      select count(*)
+      from games g
+      where g.status = 'final'
+        and g.home_score is not null
+        and g.away_score is not null
+        and (
+          (g.home_team_id = p_team_id and g.home_score > g.away_score)
+          or (g.away_team_id = p_team_id and g.away_score > g.home_score)
+        )
+    ),
+    losses = (
+      select count(*)
+      from games g
+      where g.status = 'final'
+        and g.home_score is not null
+        and g.away_score is not null
+        and (
+          (g.home_team_id = p_team_id and g.home_score < g.away_score)
+          or (g.away_team_id = p_team_id and g.away_score < g.home_score)
+        )
+    )
+  where t.id = p_team_id;
+end;
+$$;
+
+-- Trigger function: recalc the records of every team touched by the change.
+create or replace function public.games_sync_team_records()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if (tg_op = 'DELETE') then
+    perform recalc_team_record(old.home_team_id);
+    perform recalc_team_record(old.away_team_id);
+    return old;
+  end if;
+
+  perform recalc_team_record(new.home_team_id);
+  perform recalc_team_record(new.away_team_id);
+
+  if (tg_op = 'UPDATE') then
+    if (old.home_team_id is distinct from new.home_team_id) then
+      perform recalc_team_record(old.home_team_id);
+    end if;
+    if (old.away_team_id is distinct from new.away_team_id) then
+      perform recalc_team_record(old.away_team_id);
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_games_sync_team_records on public.games;
+create trigger trg_games_sync_team_records
+  after insert or update or delete on public.games
+  for each row execute function public.games_sync_team_records();
+
 -- Storage bucket for images (logos, photos, stat sheets)
 -- Run this separately in Supabase dashboard or via API:
 -- insert into storage.buckets (id, name, public) values ('images', 'images', true);
