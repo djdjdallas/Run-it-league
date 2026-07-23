@@ -20,20 +20,48 @@ import {
 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
+// A match only counts as verified when the extracted NAME lines up with a
+// roster name. A jersey-number hit alone can't verify identity (numbers
+// repeat across teams and misreads are common), so it never confirms a row.
 function matchExtractedToRoster(extracted, roster) {
-  if (!extracted?.name) return null
-  const extractedName = extracted.name.toLowerCase().trim()
+  const extractedName = (extracted?.name || "").toLowerCase().trim()
+  if (!extractedName) return null
+  for (const p of roster) {
+    const rosterName = (p.name || "").toLowerCase().trim()
+    if (!rosterName) continue
+    if (
+      rosterName === extractedName ||
+      rosterName.includes(extractedName) ||
+      extractedName.includes(rosterName)
+    ) {
+      return { player: p, exact: rosterName === extractedName }
+    }
+  }
+  return null
+}
+
+const CORE_STAT_FIELDS = [
+  "points",
+  "rebounds",
+  "assists",
+  "steals",
+  "turnovers",
+  "fg_made",
+  "fg_attempted",
+  "three_made",
+  "three_attempted",
+]
+
+// A row with no readable stat must never reach the database — upserting it
+// would overwrite any existing stats for that player with zeros.
+function hasVerifiableStats(extracted) {
+  return CORE_STAT_FIELDS.some((f) => typeof extracted?.[f] === "number")
+}
+
+function numberOnRoster(extracted, roster) {
   return (
-    roster.find((p) => {
-      const rosterName = (p.name || "").toLowerCase().trim()
-      if (!rosterName) return false
-      return (
-        rosterName === extractedName ||
-        rosterName.includes(extractedName) ||
-        extractedName.includes(rosterName) ||
-        (extracted.number != null && p.number === extracted.number)
-      )
-    }) || null
+    extracted?.number != null &&
+    roster.some((p) => p.number === extracted.number)
   )
 }
 
@@ -180,35 +208,66 @@ export default function ScanStatsClient({ games }) {
       const usedHomeIds = new Set()
       const usedAwayIds = new Set()
 
+      // Gate: a row only confirms as an entry when its identity is verified
+      // by name against exactly one roster AND it carries readable stats.
+      // Anything unverifiable is quarantined with a reason and never saved.
       allExtracted.forEach((p) => {
+        if (!hasVerifiableStats(p)) {
+          homeUnmatched.push({
+            ...p,
+            gate_reason:
+              "No readable stats on this row — nothing verifiable to save",
+          })
+          return
+        }
+
         const homeMatch = matchExtractedToRoster(p, homeRoster)
         const awayMatch = matchExtractedToRoster(p, awayRoster)
-        if (homeMatch && !usedHomeIds.has(homeMatch.id) && !awayMatch) {
-          homeMatches.push({ player: homeMatch, extracted: p })
-          usedHomeIds.add(homeMatch.id)
-        } else if (awayMatch && !usedAwayIds.has(awayMatch.id) && !homeMatch) {
-          awayMatches.push({ player: awayMatch, extracted: p })
-          usedAwayIds.add(awayMatch.id)
-        } else if (homeMatch && awayMatch) {
-          // Ambiguous (e.g. matched on jersey number that exists on both teams).
-          // Prefer the side where the name match is exact.
-          const ext = (p.name || "").toLowerCase().trim()
-          const homeExact = (homeMatch.name || "").toLowerCase().trim() === ext
-          const awayExact = (awayMatch.name || "").toLowerCase().trim() === ext
-          if (homeExact && !awayExact && !usedHomeIds.has(homeMatch.id)) {
-            homeMatches.push({ player: homeMatch, extracted: p })
-            usedHomeIds.add(homeMatch.id)
-          } else if (awayExact && !homeExact && !usedAwayIds.has(awayMatch.id)) {
-            awayMatches.push({ player: awayMatch, extracted: p })
-            usedAwayIds.add(awayMatch.id)
-          } else if (!usedHomeIds.has(homeMatch.id)) {
-            homeMatches.push({ player: homeMatch, extracted: p })
-            usedHomeIds.add(homeMatch.id)
+        const homeFree = homeMatch && !usedHomeIds.has(homeMatch.player.id)
+        const awayFree = awayMatch && !usedAwayIds.has(awayMatch.player.id)
+
+        if (homeFree && awayFree) {
+          // Name matches players on BOTH rosters — only an exact match on
+          // exactly one side resolves it; otherwise it stays unconfirmed.
+          if (homeMatch.exact && !awayMatch.exact) {
+            homeMatches.push({ player: homeMatch.player, extracted: p })
+            usedHomeIds.add(homeMatch.player.id)
+          } else if (awayMatch.exact && !homeMatch.exact) {
+            awayMatches.push({ player: awayMatch.player, extracted: p })
+            usedAwayIds.add(awayMatch.player.id)
           } else {
-            homeUnmatched.push(p)
+            homeUnmatched.push({
+              ...p,
+              gate_reason:
+                "Name matches players on both rosters — assign manually",
+            })
           }
+        } else if (homeFree) {
+          homeMatches.push({ player: homeMatch.player, extracted: p })
+          usedHomeIds.add(homeMatch.player.id)
+        } else if (awayFree) {
+          awayMatches.push({ player: awayMatch.player, extracted: p })
+          usedAwayIds.add(awayMatch.player.id)
+        } else if (homeMatch || awayMatch) {
+          homeUnmatched.push({
+            ...p,
+            gate_reason:
+              "Another row already matched this player — resolve manually",
+          })
+        } else if (
+          numberOnRoster(p, homeRoster) ||
+          numberOnRoster(p, awayRoster)
+        ) {
+          homeUnmatched.push({
+            ...p,
+            gate_reason:
+              "Jersey number found on a roster but the name couldn't be verified — assign manually",
+          })
         } else {
-          homeUnmatched.push(p)
+          homeUnmatched.push({
+            ...p,
+            gate_reason: "No roster match",
+          })
         }
       })
 
@@ -508,20 +567,28 @@ function TeamPreview({ label, matches, unmatched }) {
       {unmatched.length > 0 && (
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">
-            Couldn&apos;t match these rows — refine manually in the full editor:
+            These rows couldn&apos;t be verified, so they will NOT be saved —
+            enter them manually in the full editor:
           </p>
           {unmatched.map((p, i) => (
             <div
               key={i}
-              className="flex justify-between items-center p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm text-yellow-200"
+              className="flex justify-between items-start p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm text-yellow-200"
             >
-              <span className="flex items-center gap-2">
-                <AlertCircle className="h-3 w-3 text-yellow-400" />
-                {p.number ? `#${p.number} ` : ""}
-                {p.name || "(no name)"}
-              </span>
-              <span className="font-mono text-xs text-yellow-300/80">
-                {p.points || 0} pts
+              <div className="min-w-0">
+                <span className="flex items-center gap-2">
+                  <AlertCircle className="h-3 w-3 text-yellow-400 shrink-0" />
+                  {p.number != null ? `#${p.number} ` : ""}
+                  {p.name || "(no name)"}
+                </span>
+                {p.gate_reason && (
+                  <p className="text-xs text-yellow-300/70 mt-1 ml-5">
+                    {p.gate_reason}
+                  </p>
+                )}
+              </div>
+              <span className="font-mono text-xs text-yellow-300/80 shrink-0 ml-2">
+                {p.points ?? "—"} pts
               </span>
             </div>
           ))}
