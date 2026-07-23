@@ -1,5 +1,72 @@
 import { NextResponse } from "next/server"
 
+const STAT_FIELDS = [
+  "minutes",
+  "points",
+  "rebounds",
+  "assists",
+  "steals",
+  "blocks",
+  "turnovers",
+  "fouls",
+  "fg_made",
+  "fg_attempted",
+  "three_made",
+  "three_attempted",
+  "ft_made",
+  "ft_attempted",
+]
+
+// A stat is only usable if it's a verifiable non-negative count.
+function toCount(value) {
+  const n =
+    typeof value === "string" && value.trim() !== "" ? Number(value) : value
+  if (typeof n !== "number" || !Number.isFinite(n) || n < 0) return null
+  return Math.round(n)
+}
+
+function sanitizePlayer(raw) {
+  if (!raw || typeof raw !== "object") return null
+  const name =
+    typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : null
+  const number = toCount(raw.number)
+  // No name and no number — nothing to verify the row against a roster.
+  if (!name && number == null) return null
+  const player = { name, number }
+  for (const field of STAT_FIELDS) {
+    player[field] = toCount(raw[field])
+  }
+  // Made counts can never exceed attempts; if they do, the read is
+  // unverifiable — null both rather than let a bad count through.
+  for (const [made, att] of [
+    ["fg_made", "fg_attempted"],
+    ["three_made", "three_attempted"],
+    ["ft_made", "ft_attempted"],
+  ]) {
+    if (
+      player[made] != null &&
+      player[att] != null &&
+      player[made] > player[att]
+    ) {
+      player[made] = null
+      player[att] = null
+    }
+  }
+  return player
+}
+
+function sanitizeTeam(raw) {
+  if (!raw || typeof raw !== "object") return null
+  return {
+    name:
+      typeof raw.name === "string" && raw.name.trim() ? raw.name.trim() : null,
+    players: Array.isArray(raw.players)
+      ? raw.players.map(sanitizePlayer).filter(Boolean)
+      : [],
+    total_score: toCount(raw.total_score),
+  }
+}
+
 export async function POST(request) {
   try {
     const { image, mediaType } = await request.json()
@@ -155,7 +222,17 @@ If a specific value is illegible or ambiguous, use null for that field — do no
         throw new Error("No JSON found in response")
       }
 
-      const stats = JSON.parse(jsonMatch[0])
+      const parsed = JSON.parse(jsonMatch[0])
+      if (!parsed || typeof parsed !== "object") {
+        throw new Error("AI response is not a JSON object")
+      }
+
+      // Gate the vision output: only verifiable values survive — everything
+      // else becomes null so the client can't treat it as a real stat.
+      const stats = {
+        home_team: sanitizeTeam(parsed.home_team),
+        away_team: sanitizeTeam(parsed.away_team),
+      }
       return NextResponse.json({ stats })
     } catch (parseError) {
       console.error("JSON parse error:", parseError, "Content:", content)
