@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { MarqueeTicker } from "@/components/marquee-ticker"
 import { MatchupCard } from "@/components/matchup-card"
+import { GameCard } from "@/components/game-card"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
 import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
 import { calculateWinPercentage, formatDate, formatTime } from "@/lib/utils"
@@ -127,6 +128,45 @@ export default async function HomePage() {
                 className="md:hidden flex items-center justify-center gap-2 text-sm text-white/40 hover:text-neon transition-colors mt-6"
               >
                 View All Matchups
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* ===== RECENT RESULTS — "FINAL SCORES" ===== */}
+        {recentGames.length > 0 && (
+          <section className="py-16 md:py-24">
+            <div className="container">
+              <div className="flex items-end justify-between mb-10">
+                <div>
+                  <p className="text-neon text-xs font-bold uppercase tracking-[0.3em] mb-2">
+                    Results
+                  </p>
+                  <h2 className="font-display text-4xl md:text-5xl text-white">
+                    FINAL SCORES
+                  </h2>
+                </div>
+                <Link
+                  href="/schedule"
+                  className="hidden md:inline-flex items-center gap-2 text-sm text-white/40 hover:text-neon transition-colors"
+                >
+                  All Results
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {recentGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+
+              <Link
+                href="/schedule"
+                className="md:hidden flex items-center justify-center gap-2 text-sm text-white/40 hover:text-neon transition-colors mt-6"
+              >
+                All Results
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

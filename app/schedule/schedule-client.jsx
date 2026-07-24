@@ -10,7 +10,16 @@ import { formatDate } from "@/lib/utils"
 export default function ScheduleClient({ games, teams }) {
   const [teamFilter, setTeamFilter] = useState("all")
   const [view, setView] = useState("list")
-  const [activeTab, setActiveTab] = useState("upcoming")
+  // Default to Results when there are final games but nothing left on the calendar
+  const hasFutureGames = games.some(
+    (g) =>
+      (g.status === "scheduled" || g.status === "in_progress") &&
+      new Date(g.game_date) >= new Date(new Date().toDateString())
+  )
+  const hasResults = games.some((g) => g.status === "final")
+  const [activeTab, setActiveTab] = useState(
+    hasResults && !hasFutureGames ? "results" : "upcoming"
+  )
 
   // Filter games by team
   const filteredGames = games.filter((game) => {
