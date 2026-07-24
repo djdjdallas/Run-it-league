@@ -19,6 +19,7 @@ import {
 import { StatScanner } from "@/components/stat-scanner"
 import { ArrowLeft, Save, Check, Loader2 } from "lucide-react"
 import { formatDate, calculatePercentage } from "@/lib/utils"
+import { finalizeGameFromStats } from "@/lib/game-finalize"
 
 export default function GameStatsClient({
   game,
@@ -244,6 +245,10 @@ export default function GameStatsClient({
         console.error("Failed to save stat sheet URL:", gameError)
       }
     }
+
+    // Roll the saved stats up into the game score, mark it final, and
+    // refresh both teams' win/loss records
+    await finalizeGameFromStats(supabase, game)
 
     setSaving(false)
     setSaved(true)

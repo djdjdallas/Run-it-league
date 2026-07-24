@@ -113,7 +113,7 @@ export default async function GameDetailPage({ params }) {
 
                 {/* Score */}
                 <div className="text-center">
-                  {isFinal ? (
+                  {game.home_score != null && game.away_score != null ? (
                     <div className="flex items-center justify-center gap-4">
                       <span className={`font-display text-5xl md:text-6xl font-bold ${awayWon ? "text-neon neon-glow" : "text-white/40"}`}>
                         {game.away_score}

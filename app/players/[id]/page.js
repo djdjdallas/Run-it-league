@@ -94,7 +94,9 @@ export default async function PlayerDetailPage({ params }) {
     const game = stat.game
     const isHome = game?.home_team_id === player.team_id
     const opponent = isHome ? game?.away_team : game?.home_team
-    const result = game
+    const hasScore =
+      game?.status === "final" && game.home_score != null && game.away_score != null
+    const result = hasScore
       ? isHome
         ? game.home_score > game.away_score
           ? "W"
@@ -103,7 +105,7 @@ export default async function PlayerDetailPage({ params }) {
         ? "W"
         : "L"
       : "-"
-    const score = game
+    const score = hasScore
       ? isHome
         ? `${game.home_score}-${game.away_score}`
         : `${game.away_score}-${game.home_score}`

@@ -60,7 +60,7 @@ export function StandingsTable({ teams }) {
                       className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
                       style={{ backgroundColor: team.primary_color || "#000" }}
                     >
-                      {team.abbreviation || team.name.substring(0, 2).toUpperCase()}
+                      {team.abbreviation || team.name?.substring(0, 2).toUpperCase() || "?"}
                     </div>
                   )}
                   <span className="font-medium">{team.name}</span>

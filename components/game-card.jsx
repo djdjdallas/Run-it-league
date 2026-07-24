@@ -54,7 +54,7 @@ export function GameCard({ game, showDate = true }) {
                 {game.away_team?.name || "TBD"}
               </span>
             </div>
-            {isFinal && (
+            {game.away_score != null && (
               <span className={`text-lg ${awayWon ? "text-white font-bold" : "text-white/40"}`}>
                 {game.away_score}
               </span>
@@ -82,7 +82,7 @@ export function GameCard({ game, showDate = true }) {
                 {game.home_team?.name || "TBD"}
               </span>
             </div>
-            {isFinal && (
+            {game.home_score != null && (
               <span className={`text-lg ${homeWon ? "text-white font-bold" : "text-white/40"}`}>
                 {game.home_score}
               </span>

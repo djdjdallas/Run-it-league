@@ -51,7 +51,7 @@ export default async function TeamsPage() {
                           className="w-16 h-16 flex items-center justify-center text-white text-xl font-bold"
                           style={{ backgroundColor: team.primary_color || "#000" }}
                         >
-                          {team.abbreviation || team.name.substring(0, 2).toUpperCase()}
+                          {team.abbreviation || team.name?.substring(0, 2).toUpperCase() || "?"}
                         </div>
                       )}
                       <div>

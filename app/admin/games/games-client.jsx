@@ -29,6 +29,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
+import { recalcTeamRecords } from "@/lib/game-finalize"
 
 export default function GamesClient({ initialGames, teams }) {
   const router = useRouter()
@@ -87,16 +88,15 @@ export default function GamesClient({ initialGames, teams }) {
       `${formData.game_date}T${formData.game_time || "12:00"}`
     )
 
+    const hasScore = formData.status === "final" || formData.status === "in_progress"
     const gameData = {
       home_team_id: formData.home_team_id,
       away_team_id: formData.away_team_id,
       game_date: gameDateTime.toISOString(),
       location: formData.location || null,
       status: formData.status,
-      home_score:
-        formData.status === "final" ? parseInt(formData.home_score) || 0 : null,
-      away_score:
-        formData.status === "final" ? parseInt(formData.away_score) || 0 : null,
+      home_score: hasScore ? parseInt(formData.home_score) || 0 : null,
+      away_score: hasScore ? parseInt(formData.away_score) || 0 : null,
     }
 
     if (editingGame) {
@@ -122,6 +122,13 @@ export default function GamesClient({ initialGames, teams }) {
       }
     }
 
+    await recalcTeamRecords(supabase, [
+      gameData.home_team_id,
+      gameData.away_team_id,
+      editingGame?.home_team_id,
+      editingGame?.away_team_id,
+    ])
+
     setSaving(false)
     setDialogOpen(false)
     router.refresh()
@@ -140,6 +147,11 @@ export default function GamesClient({ initialGames, teams }) {
     if (error) {
       alert("Failed to delete game: " + error.message)
       setGames(prev)
+      return
+    }
+
+    if (game.status === "final") {
+      await recalcTeamRecords(supabase, [game.home_team_id, game.away_team_id])
     }
   }
 
@@ -356,7 +368,7 @@ export default function GamesClient({ initialGames, teams }) {
               </Select>
             </div>
 
-            {formData.status === "final" && (
+            {(formData.status === "final" || formData.status === "in_progress") && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="away_score">Away Score</Label>

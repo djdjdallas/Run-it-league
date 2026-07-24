@@ -19,6 +19,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import { finalizeGameFromStats } from "@/lib/game-finalize"
 
 // A match only counts as verified when the extracted NAME lines up with a
 // roster name. A jersey-number hit alone can't verify identity (numbers
@@ -322,6 +323,10 @@ export default function ScanStatsClient({ games }) {
         .update({ stat_sheet_url: result.imageUrl })
         .eq("id", selectedGame.id)
     }
+
+    // Roll the saved stats up into the game score, mark it final, and
+    // refresh both teams' win/loss records
+    await finalizeGameFromStats(supabase, selectedGame)
 
     router.push(`/admin/games/${selectedGame.id}/stats`)
   }
