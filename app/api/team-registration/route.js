@@ -27,12 +27,22 @@ export async function POST(request) {
 
     const supabase = await createServerSupabaseClient()
 
-    // Get current season if one exists
+    // Seasons are per-league, so is_current matches one row per league and
+    // an unscoped .single() would error out. Until this route carries real
+    // league context, scope it to the default league -- which is where the
+    // registration lands anyway, via the league_id column default.
+    const { data: league } = await supabase
+      .from("leagues")
+      .select("id")
+      .eq("is_default", true)
+      .maybeSingle()
+
     const { data: season } = await supabase
       .from("seasons")
       .select("id")
       .eq("is_current", true)
-      .single()
+      .eq("league_id", league?.id ?? null)
+      .maybeSingle()
 
     const roster_token = generateToken()
     const roster_token_expires_at = new Date(

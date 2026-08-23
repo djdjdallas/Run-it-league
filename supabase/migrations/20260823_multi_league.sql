@@ -107,9 +107,9 @@ alter table events             add column if not exists league_id uuid reference
 alter table registrations      add column if not exists league_id uuid references leagues(id) on delete restrict;
 alter table team_registrations add column if not exists league_id uuid references leagues(id) on delete restrict;
 
--- Seasons are league-scoped only when a league runs its own calendar.
--- NULL means "shared season", valid for both leagues at once. Left
--- nullable deliberately so either arrangement works.
+-- Each league runs its own calendar, so a season belongs to exactly one
+-- league. "Spring 2026" exists twice -- once per league -- and the two
+-- can start, end and roll over independently.
 alter table seasons add column if not exists league_id uuid references leagues(id) on delete cascade;
 
 -- Players are league-scoped through their team, but team_id is nullable
@@ -128,6 +128,7 @@ alter table players add column if not exists league_id uuid references leagues(i
 -- 3. Backfill everything that exists today to Run It League
 -- ------------------------------------------------------------
 
+update seasons            set league_id = default_league_id() where league_id is null;
 update teams              set league_id = default_league_id() where league_id is null;
 update announcements      set league_id = default_league_id() where league_id is null;
 update live_streams       set league_id = default_league_id() where league_id is null;
@@ -160,6 +161,7 @@ update games g
 -- 4. Defaults + NOT NULL
 -- ------------------------------------------------------------
 
+alter table seasons            alter column league_id set default default_league_id();
 alter table teams              alter column league_id set default default_league_id();
 alter table games              alter column league_id set default default_league_id();
 alter table announcements      alter column league_id set default default_league_id();
@@ -169,6 +171,7 @@ alter table events             alter column league_id set default default_league
 alter table registrations      alter column league_id set default default_league_id();
 alter table team_registrations alter column league_id set default default_league_id();
 
+alter table seasons            alter column league_id set not null;
 alter table teams              alter column league_id set not null;
 alter table games              alter column league_id set not null;
 alter table announcements      alter column league_id set not null;
@@ -181,7 +184,9 @@ alter table team_registrations alter column league_id set not null;
 alter table players alter column league_id set default default_league_id();
 alter table players alter column league_id set not null;
 
--- seasons.league_id stays nullable on purpose: NULL means "shared season".
+-- Each league may have at most one current season.
+create unique index if not exists idx_seasons_single_current
+  on seasons (league_id) where is_current;
 
 
 -- ------------------------------------------------------------
@@ -203,29 +208,16 @@ create index if not exists idx_players_league            on players(league_id);
 
 
 -- ------------------------------------------------------------
--- 6. Sponsors: many-to-many, because a sponsor may back both leagues
+-- 6. Sponsors are shared across leagues
 -- ------------------------------------------------------------
--- A join table rather than a column, so a sponsor can appear in one
--- league, the other, or both. Existing sponsors are linked to Run It
--- League only, which preserves current behaviour exactly.
+-- Sponsors deliberately get no league_id: one sponsor roster serves both
+-- leagues, and getSponsors() stays unscoped.
 --
--- If sponsors should simply be shared across every league, delete this
--- section and skip the join in the sponsor query -- nothing else
--- depends on it.
+-- An earlier draft of this migration created a league_sponsors join
+-- table. Dropped here so a database that ran that draft converges on the
+-- same shape. Safe to leave in place; it is a no-op otherwise.
 
-create table if not exists league_sponsors (
-  league_id  uuid references leagues(id)  on delete cascade not null,
-  sponsor_id uuid references sponsors(id) on delete cascade not null,
-  display_order integer default 0,
-  primary key (league_id, sponsor_id)
-);
-
-insert into league_sponsors (league_id, sponsor_id, display_order)
-select default_league_id(), s.id, coalesce(s.display_order, 0)
-  from sponsors s
-on conflict do nothing;
-
-create index if not exists idx_league_sponsors_league on league_sponsors(league_id);
+drop table if exists league_sponsors;
 
 
 -- ------------------------------------------------------------
@@ -242,6 +234,7 @@ as $$
 declare
   home_league uuid;
   away_league uuid;
+  season_league uuid;
 begin
   select league_id into home_league from teams where id = new.home_team_id;
   select league_id into away_league from teams where id = new.away_team_id;
@@ -253,14 +246,51 @@ begin
       new.league_id, home_league, away_league;
   end if;
 
+  -- Seasons are per-league, so a game must not be filed under the other
+  -- league's calendar.
+  if new.season_id is not null then
+    select league_id into season_league from seasons where id = new.season_id;
+    if season_league is distinct from new.league_id then
+      raise exception
+        'Game league (%) does not match its season league (%)',
+        new.league_id, season_league;
+    end if;
+  end if;
+
   return new;
 end;
 $$;
 
 drop trigger if exists trg_game_league_consistency on games;
 create trigger trg_game_league_consistency
-  before insert or update of home_team_id, away_team_id, league_id on games
+  before insert or update of home_team_id, away_team_id, league_id, season_id on games
   for each row execute function enforce_game_league_consistency();
+
+
+-- Same rule for teams: a team's season must belong to the team's league.
+create or replace function enforce_team_season_league()
+returns trigger
+language plpgsql
+as $$
+declare
+  season_league uuid;
+begin
+  if new.season_id is not null then
+    select league_id into season_league from seasons where id = new.season_id;
+    if season_league is distinct from new.league_id then
+      raise exception
+        'Team league (%) does not match its season league (%)',
+        new.league_id, season_league;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_team_season_league on teams;
+create trigger trg_team_season_league
+  before insert or update of season_id, league_id on teams
+  for each row execute function enforce_team_season_league();
 
 
 -- ------------------------------------------------------------
@@ -393,8 +423,7 @@ grant select on player_stat_totals to anon, authenticated;
 -- 9. Row Level Security
 -- ------------------------------------------------------------
 
-alter table leagues         enable row level security;
-alter table league_sponsors enable row level security;
+alter table leagues enable row level security;
 
 drop policy if exists "Public read access for leagues" on leagues;
 create policy "Public read access for leagues"
@@ -407,19 +436,6 @@ create policy "Admin full access for leagues"
   on leagues for all
   to authenticated
   using (true);
-
-drop policy if exists "Public read access for league_sponsors" on league_sponsors;
-create policy "Public read access for league_sponsors"
-  on league_sponsors for select
-  to anon, authenticated
-  using (true);
-
-drop policy if exists "Admin full access for league_sponsors" on league_sponsors;
-create policy "Admin full access for league_sponsors"
-  on league_sponsors for all
-  to authenticated
-  using (true);
-
 
 -- ------------------------------------------------------------
 -- 10. Verification
@@ -441,6 +457,7 @@ begin
     union all select 1 from registrations      where league_id is null
     union all select 1 from team_registrations where league_id is null
     union all select 1 from players           where league_id is null
+    union all select 1 from seasons           where league_id is null
   ) x;
 
   if orphans > 0 then
@@ -457,6 +474,19 @@ begin
 
   if orphans > 0 then
     raise exception 'Migration incomplete: % game(s) span two leagues', orphans;
+  end if;
+
+  -- No row may be filed under another league's season.
+  select count(*) into orphans from (
+    select 1 from games g join seasons s on s.id = g.season_id
+      where s.league_id <> g.league_id
+    union all
+    select 1 from teams t join seasons s on s.id = t.season_id
+      where s.league_id <> t.league_id
+  ) x;
+
+  if orphans > 0 then
+    raise exception 'Migration incomplete: % row(s) reference another league''s season', orphans;
   end if;
 
   raise notice 'Multi-league migration complete. Leagues: %',
