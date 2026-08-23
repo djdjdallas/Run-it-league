@@ -1,5 +1,6 @@
 import { getStreams, getGames } from "@/lib/queries"
 import StreamsClient from "./streams-client"
+import { getAdminLeague } from "@/lib/leagues"
 
 export const metadata = {
   title: "Streams - Admin - Run It League",
@@ -7,7 +8,8 @@ export const metadata = {
 }
 
 export default async function AdminStreamsPage() {
-  const [streams, games] = await Promise.all([getStreams(), getGames()])
+  const league = await getAdminLeague()
+  const [streams, games] = await Promise.all([getStreams(league.id), getGames(league.id)])
 
   return <StreamsClient initialStreams={streams} games={games} />
 }

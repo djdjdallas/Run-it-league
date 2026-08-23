@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Radio, ChevronRight, RefreshCw } from "lucide-react"
 import { sampleGames, sampleTeams } from "@/lib/sample-data"
+import { useLeague } from "@/components/use-league"
 
 export function LiveGameTicker({ pollInterval = 30000 }) {
+  const { lp } = useLeague()
   const [games, setGames] = useState([])
   const [lastUpdate, setLastUpdate] = useState(new Date())
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -81,7 +83,7 @@ export function LiveGameTicker({ pollInterval = 30000 }) {
           {games.map((game) => (
             <Link
               key={game.id}
-              href={`/games/${game.id}`}
+              href={lp(`/games/${game.id}`)}
               className="block bg-background rounded-lg p-4 hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-center justify-between">
@@ -141,6 +143,7 @@ export function LiveGameTicker({ pollInterval = 30000 }) {
 
 // Compact version for sidebars
 export function LiveScoreWidget() {
+  const { lp } = useLeague()
   const [games, setGames] = useState([])
 
   useEffect(() => {
@@ -170,7 +173,7 @@ export function LiveScoreWidget() {
           {games.slice(0, 2).map((game) => (
             <Link
               key={game.id}
-              href={`/games/${game.id}`}
+              href={lp(`/games/${game.id}`)}
               className="block text-sm hover:bg-muted/50 rounded p-2 -mx-2"
             >
               <div className="flex justify-between">

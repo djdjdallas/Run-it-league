@@ -11,23 +11,29 @@ import {
 import { Footer } from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
 import { getPlayerById, getStatsByPlayer } from "@/lib/queries"
+import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
 import { formatDate, calculatePercentage } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
-  const { id } = await params
-  const player = await getPlayerById(id)
+  const { id, league: slug } = await params
+  const league = await resolveLeague(slug)
+  const player = league && (await getPlayerById(league.id, id))
   if (!player) return { title: "Player Not Found" }
   return {
-    title: `${player.name} - Run It League`,
+    title: `${player.name} - ${league.name}`,
     description: `View ${player.name}'s stats and game logs`,
   }
 }
 
 export default async function PlayerDetailPage({ params }) {
-  const { id } = await params
+  const { id, league: slug } = await params
+  const league = await resolveLeague(slug)
+  if (!league) notFound()
+  const basePath = leaguePrefix(league)
+
   const [player, playerGameStats] = await Promise.all([
-    getPlayerById(id),
-    getStatsByPlayer(id),
+    getPlayerById(league.id, id),
+    getStatsByPlayer(league.id, id),
   ])
 
   if (!player) {
@@ -127,7 +133,7 @@ export default async function PlayerDetailPage({ params }) {
         <div className="container py-8">
           {/* Back Link */}
           <Link
-            href="/players"
+            href={`${basePath}/players`}
             className="inline-flex items-center gap-2 text-white/40 hover:text-neon transition-colors text-sm mb-8"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -156,7 +162,7 @@ export default async function PlayerDetailPage({ params }) {
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 {team && (
                   <Link
-                    href={`/teams/${team.id}`}
+                    href={`${basePath}/teams/${team.id}`}
                     className="border border-white/20 text-white/60 hover:border-neon hover:text-neon transition-colors text-sm px-3 py-1"
                   >
                     {team.name}
@@ -266,7 +272,7 @@ export default async function PlayerDetailPage({ params }) {
                         </TableCell>
                         <TableCell>
                           <Link
-                            href={`/teams/${log.opponent?.id}`}
+                            href={`${basePath}/teams/${log.opponent?.id}`}
                             className="text-white/60 hover:text-neon transition-colors"
                           >
                             {log.isHome ? "vs " : "@ "}
@@ -336,7 +342,7 @@ export default async function PlayerDetailPage({ params }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={leagueWordmark(league)} />
     </div>
   )
 }

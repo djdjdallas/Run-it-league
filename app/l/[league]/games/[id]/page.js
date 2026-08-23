@@ -4,22 +4,28 @@ import { BoxScore } from "@/components/box-score"
 import { Footer } from "@/components/footer"
 import { ArrowLeft, MapPin, Calendar as CalendarIcon } from "lucide-react"
 import { getGameById, getStatsByGame, getPlayersByTeam } from "@/lib/queries"
+import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
 import { formatDate, formatTime } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
-  const { id } = await params
-  const game = await getGameById(id)
+  const { id, league: slug } = await params
+  const league = await resolveLeague(slug)
+  const game = league && (await getGameById(league.id, id))
   if (!game) return { title: "Game Not Found" }
 
   return {
-    title: `${game.away_team?.name || "Away"} vs ${game.home_team?.name || "Home"} - Run It League`,
+    title: `${game.away_team?.name || "Away"} vs ${game.home_team?.name || "Home"} - ${league.name}`,
     description: `Game details and box score`,
   }
 }
 
 export default async function GameDetailPage({ params }) {
-  const { id } = await params
-  const game = await getGameById(id)
+  const { id, league: slug } = await params
+  const league = await resolveLeague(slug)
+  if (!league) notFound()
+  const basePath = leaguePrefix(league)
+
+  const game = await getGameById(league.id, id)
 
   if (!game) {
     notFound()
@@ -35,9 +41,9 @@ export default async function GameDetailPage({ params }) {
 
   // Get stats and players for this game
   const [gameStats, homePlayers, awayPlayers] = await Promise.all([
-    getStatsByGame(id),
-    getPlayersByTeam(game.home_team_id),
-    getPlayersByTeam(game.away_team_id),
+    getStatsByGame(league.id, id),
+    getPlayersByTeam(league.id, game.home_team_id),
+    getPlayersByTeam(league.id, game.away_team_id),
   ])
 
   const allPlayers = [...homePlayers, ...awayPlayers]
@@ -50,7 +56,7 @@ export default async function GameDetailPage({ params }) {
         <div className="container py-8">
           {/* Back Link */}
           <Link
-            href="/schedule"
+            href={`${basePath}/schedule`}
             className="inline-flex items-center gap-2 text-white/40 hover:text-neon transition-colors text-sm mb-8"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -86,7 +92,7 @@ export default async function GameDetailPage({ params }) {
               {/* Matchup */}
               <div className="grid grid-cols-3 gap-4 items-center">
                 {/* Away Team */}
-                <Link href={`/teams/${awayTeam?.id}`} className="text-center group">
+                <Link href={`${basePath}/teams/${awayTeam?.id}`} className="text-center group">
                   <div className="flex flex-col items-center">
                     {awayTeam?.logo_url ? (
                       <img
@@ -129,7 +135,7 @@ export default async function GameDetailPage({ params }) {
                 </div>
 
                 {/* Home Team */}
-                <Link href={`/teams/${homeTeam?.id}`} className="text-center group">
+                <Link href={`${basePath}/teams/${homeTeam?.id}`} className="text-center group">
                   <div className="flex flex-col items-center">
                     {homeTeam?.logo_url ? (
                       <img
@@ -204,7 +210,7 @@ export default async function GameDetailPage({ params }) {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={leagueWordmark(league)} />
     </div>
   )
 }

@@ -9,19 +9,28 @@ import {
 } from "@/components/ui/table"
 import { Footer } from "@/components/footer"
 import { getStatLeaders } from "@/lib/queries"
+import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
 
-export const metadata = {
-  title: "Stats Leaders - Run It League",
-  description: "View statistical leaders in the Run It League",
+export async function generateMetadata({ params }) {
+  const { league: slug } = await params
+  const league = await resolveLeague(slug)
+  return {
+    title: `Stat Leaders - ${league?.name || "Run It League"}`,
+    description: `View statistical leaders in the ${league?.name || "Run It League"}`,
+  }
 }
 
-export default async function StatsPage() {
+export default async function StatsPage({ params }) {
+  const { league: slug } = await params
+  const league = await resolveLeague(slug)
+  const basePath = leaguePrefix(league)
+
   const [pointsLeaders, reboundsLeaders, assistsLeaders, stealsLeaders, blocksLeaders] = await Promise.all([
-    getStatLeaders("points", 10),
-    getStatLeaders("rebounds", 10),
-    getStatLeaders("assists", 10),
-    getStatLeaders("steals", 10),
-    getStatLeaders("blocks", 10),
+    getStatLeaders(league.id, "points", 10),
+    getStatLeaders(league.id, "rebounds", 10),
+    getStatLeaders(league.id, "assists", 10),
+    getStatLeaders(league.id, "steals", 10),
+    getStatLeaders(league.id, "blocks", 10),
   ])
 
   const tabs = [
@@ -53,7 +62,7 @@ export default async function StatsPage() {
               </TableCell>
               <TableCell>
                 <Link
-                  href={`/players/${leader.player?.id}`}
+                  href={`${basePath}/players/${leader.player?.id}`}
                   className="text-white hover:text-neon transition-colors font-medium"
                 >
                   {leader.player?.name}
@@ -61,7 +70,7 @@ export default async function StatsPage() {
               </TableCell>
               <TableCell>
                 <Link
-                  href={`/teams/${team?.id}`}
+                  href={`${basePath}/teams/${team?.id}`}
                   className="text-white/40 hover:text-neon transition-colors"
                 >
                   {team?.abbreviation || "-"}
@@ -124,7 +133,7 @@ export default async function StatsPage() {
                     </div>
                     <div>
                       <Link
-                        href={`/players/${leader.player?.id}`}
+                        href={`${basePath}/players/${leader.player?.id}`}
                         className="font-bold text-white hover:text-neon transition-colors"
                       >
                         {leader.player?.name}
@@ -158,7 +167,7 @@ export default async function StatsPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={leagueWordmark(league)} />
     </div>
   )
 }

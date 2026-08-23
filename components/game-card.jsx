@@ -1,7 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { formatDate, formatTime } from "@/lib/utils"
+import { useLeague } from "@/components/use-league"
 
 export function GameCard({ game, showDate = true }) {
+  const { lp } = useLeague()
   const isFinal = game.status === "final"
   const isScheduled = game.status === "scheduled"
   const isLive = game.status === "in_progress"
@@ -9,7 +13,7 @@ export function GameCard({ game, showDate = true }) {
   const awayWon = isFinal && game.away_score > game.home_score
 
   return (
-    <Link href={`/games/${game.id}`}>
+    <Link href={lp(`/games/${game.id}`)}>
       <div className="bg-[#121212] border border-white/10 p-4 brutal-hover cursor-pointer">
         {showDate && (
           <div className="flex items-center justify-between mb-3">

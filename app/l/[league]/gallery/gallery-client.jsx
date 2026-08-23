@@ -13,7 +13,7 @@ const categories = [
   { id: "updates", label: "Updates" },
 ]
 
-export default function GalleryClient({ photos, sponsors }) {
+export default function GalleryClient({ photos, sponsors, wordmark }) {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -151,7 +151,7 @@ export default function GalleryClient({ photos, sponsors }) {
         />
       )}
 
-      <Footer />
+      <Footer wordmark={wordmark} />
     </div>
   )
 }

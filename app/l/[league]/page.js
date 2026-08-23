@@ -7,14 +7,28 @@ import { MatchupCard } from "@/components/matchup-card"
 import { GameCard } from "@/components/game-card"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
 import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
+import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
 import { calculateWinPercentage, formatDate, formatTime } from "@/lib/utils"
 
-export default async function HomePage() {
+export async function generateMetadata({ params }) {
+  const { league: slug } = await params
+  const league = await resolveLeague(slug)
+  return {
+    title: league?.name || "Run It League",
+    description: league?.tagline || "Track teams, players, schedules, and stats",
+  }
+}
+
+export default async function HomePage({ params }) {
+  const { league: slug } = await params
+  const league = await resolveLeague(slug)
+  const basePath = leaguePrefix(league)
+
   const [teams, recentGames, upcomingGames, allAnnouncements, sponsors] = await Promise.all([
-    getTeams(),
-    getRecentGames(3),
-    getUpcomingGames(6),
-    getAnnouncements(),
+    getTeams(league.id),
+    getRecentGames(league.id, 3),
+    getUpcomingGames(league.id, 6),
+    getAnnouncements(league.id),
     getSponsors(),
   ])
 
@@ -64,7 +78,7 @@ export default async function HomePage() {
 
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <Link
-                href="/schedule"
+                href={`${basePath}/schedule`}
                 className="bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors inline-flex items-center gap-2"
               >
                 <Calendar className="h-4 w-4" />
@@ -109,7 +123,7 @@ export default async function HomePage() {
                   </h2>
                 </div>
                 <Link
-                  href="/schedule"
+                  href={`${basePath}/schedule`}
                   className="hidden md:inline-flex items-center gap-2 text-sm text-white/40 hover:text-neon transition-colors"
                 >
                   View All Matchups
@@ -124,7 +138,7 @@ export default async function HomePage() {
               </div>
 
               <Link
-                href="/schedule"
+                href={`${basePath}/schedule`}
                 className="md:hidden flex items-center justify-center gap-2 text-sm text-white/40 hover:text-neon transition-colors mt-6"
               >
                 View All Matchups
@@ -148,7 +162,7 @@ export default async function HomePage() {
                   </h2>
                 </div>
                 <Link
-                  href="/schedule"
+                  href={`${basePath}/schedule`}
                   className="hidden md:inline-flex items-center gap-2 text-sm text-white/40 hover:text-neon transition-colors"
                 >
                   All Results
@@ -163,7 +177,7 @@ export default async function HomePage() {
               </div>
 
               <Link
-                href="/schedule"
+                href={`${basePath}/schedule`}
                 className="md:hidden flex items-center justify-center gap-2 text-sm text-white/40 hover:text-neon transition-colors mt-6"
               >
                 All Results
@@ -187,7 +201,7 @@ export default async function HomePage() {
                   </h2>
                 </div>
                 <Link
-                  href="/teams"
+                  href={`${basePath}/teams`}
                   className="hidden md:inline-flex items-center gap-2 text-sm text-white/40 hover:text-neon transition-colors"
                 >
                   Full Leaderboard
@@ -230,7 +244,7 @@ export default async function HomePage() {
               </div>
 
               <Link
-                href="/teams"
+                href={`${basePath}/teams`}
                 className="md:hidden flex items-center justify-center gap-2 text-sm text-white/40 hover:text-neon transition-colors mt-6"
               >
                 Full Leaderboard
@@ -292,7 +306,7 @@ export default async function HomePage() {
                 Register Your Team
               </Link>
               <Link
-                href="/events"
+                href={`${basePath}/events`}
                 className="border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors"
               >
                 Contact Us
@@ -309,7 +323,7 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer wordmark={leagueWordmark(league)} />
     </div>
   )
 }

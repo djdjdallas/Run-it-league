@@ -1,5 +1,6 @@
 import { getTeams } from "@/lib/queries"
 import TeamsClient from "./teams-client"
+import { getAdminLeague } from "@/lib/leagues"
 
 export const metadata = {
   title: "Teams - Admin - Run It League",
@@ -7,7 +8,8 @@ export const metadata = {
 }
 
 export default async function AdminTeamsPage() {
-  const teams = await getTeams()
+  const league = await getAdminLeague()
+  const teams = await getTeams(league.id)
 
   return <TeamsClient initialTeams={teams} />
 }

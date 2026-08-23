@@ -7,8 +7,10 @@ import { SponsorBanner } from "@/components/sponsor-banner"
 import { Video, Calendar, Radio, Play, Clock, ChevronRight } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
 import { normalizeStreamUrl } from "@/lib/stream-url"
+import { useLeague } from "@/components/use-league"
 
-export default function LiveClient({ streams, sponsors }) {
+export default function LiveClient({ streams, sponsors, wordmark }) {
+  const { lp } = useLeague()
   const [selectedStream, setSelectedStream] = useState(null)
   const [host, setHost] = useState("")
 
@@ -121,7 +123,7 @@ export default function LiveClient({ streams, sponsors }) {
 
                     {activeStream.game && (
                       <Link
-                        href={`/games/${activeStream.game.id}`}
+                        href={lp(`/games/${activeStream.game.id}`)}
                         className="inline-flex items-center gap-1 border border-white/20 text-white px-4 py-2 text-sm hover:border-neon hover:text-neon transition-colors mt-2"
                       >
                         View Game Details
@@ -251,7 +253,7 @@ export default function LiveClient({ streams, sponsors }) {
 
               {/* Schedule Link */}
               <Link
-                href="/schedule"
+                href={lp("/schedule")}
                 className="flex items-center justify-center gap-2 border border-white/20 text-white py-3 text-sm font-bold uppercase tracking-wider hover:border-neon hover:text-neon transition-colors"
               >
                 <Calendar className="h-4 w-4" />
@@ -261,7 +263,7 @@ export default function LiveClient({ streams, sponsors }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={wordmark} />
     </div>
   )
 }

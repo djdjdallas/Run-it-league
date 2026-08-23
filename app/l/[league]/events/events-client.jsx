@@ -17,6 +17,7 @@ import {
   PartyPopper,
 } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
+import { useLeague } from "@/components/use-league"
 
 const eventTypeIcons = {
   tryout: Dumbbell,
@@ -45,7 +46,8 @@ const eventTypeBarColors = {
   general: "bg-neon/60",
 }
 
-export default function EventsClient({ events, sponsors }) {
+export default function EventsClient({ events, sponsors, wordmark }) {
+  const { lp } = useLeague()
   const [filter, setFilter] = useState("upcoming")
 
   // Sort events by start time
@@ -192,7 +194,7 @@ export default function EventsClient({ events, sponsors }) {
 
                       {event.registration_required && filter !== "past" && (
                         <div className="mt-4 pt-4 border-t border-white/10">
-                          <Link href={`/events/${event.id}/register`}>
+                          <Link href={lp(`/events/${event.id}/register`)}>
                             <button
                               disabled={isFull}
                               className={`w-full py-3 text-sm font-bold uppercase tracking-wider transition-colors ${
@@ -264,7 +266,7 @@ export default function EventsClient({ events, sponsors }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={wordmark} />
     </div>
   )
 }

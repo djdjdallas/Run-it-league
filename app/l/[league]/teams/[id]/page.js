@@ -12,25 +12,31 @@ import { Footer } from "@/components/footer"
 import { GameCard } from "@/components/game-card"
 import { ArrowLeft } from "lucide-react"
 import { getTeamById, getPlayersByTeam, getGamesByTeam, getStatsByTeam } from "@/lib/queries"
+import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
 import { calculateWinPercentage, calculatePercentage } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
-  const { id } = await params
-  const team = await getTeamById(id)
+  const { id, league: slug } = await params
+  const league = await resolveLeague(slug)
+  const team = league && (await getTeamById(league.id, id))
   if (!team) return { title: "Team Not Found" }
   return {
-    title: `${team.name} - Run It League`,
+    title: `${team.name} - ${league.name}`,
     description: `View ${team.name}'s roster, stats, and schedule`,
   }
 }
 
 export default async function TeamDetailPage({ params }) {
-  const { id } = await params
+  const { id, league: slug } = await params
+  const league = await resolveLeague(slug)
+  if (!league) notFound()
+  const basePath = leaguePrefix(league)
+
   const [team, roster, teamGames, teamStats] = await Promise.all([
-    getTeamById(id),
-    getPlayersByTeam(id),
-    getGamesByTeam(id),
-    getStatsByTeam(id),
+    getTeamById(league.id, id),
+    getPlayersByTeam(league.id, id),
+    getGamesByTeam(league.id, id),
+    getStatsByTeam(league.id, id),
   ])
 
   if (!team) {
@@ -113,7 +119,7 @@ export default async function TeamDetailPage({ params }) {
         <div className="container py-8">
           {/* Back Link */}
           <Link
-            href="/teams"
+            href={`${basePath}/teams`}
             className="inline-flex items-center gap-2 text-white/40 hover:text-neon transition-colors text-sm mb-8"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -190,7 +196,7 @@ export default async function TeamDetailPage({ params }) {
                           </TableCell>
                           <TableCell>
                             <Link
-                              href={`/players/${player.id}`}
+                              href={`${basePath}/players/${player.id}`}
                               className="text-white hover:text-neon transition-colors font-medium"
                             >
                               {player.name}
@@ -245,7 +251,7 @@ export default async function TeamDetailPage({ params }) {
                   )}
                   {teamGames.length > 5 && (
                     <Link
-                      href="/schedule"
+                      href={`${basePath}/schedule`}
                       className="block text-center text-sm text-white/40 hover:text-neon transition-colors py-2"
                     >
                       View Full Schedule
@@ -257,7 +263,7 @@ export default async function TeamDetailPage({ params }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={leagueWordmark(league)} />
     </div>
   )
 }

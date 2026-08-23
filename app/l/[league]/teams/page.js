@@ -1,15 +1,24 @@
 import Link from "next/link"
 import { Footer } from "@/components/footer"
 import { getTeams } from "@/lib/queries"
+import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
 import { calculateWinPercentage } from "@/lib/utils"
 
-export const metadata = {
-  title: "Teams - Run It League",
-  description: "View all teams in the Run It League",
+export async function generateMetadata({ params }) {
+  const { league: slug } = await params
+  const league = await resolveLeague(slug)
+  return {
+    title: `Teams - ${league?.name || "Run It League"}`,
+    description: `View all teams in the ${league?.name || "Run It League"}`,
+  }
 }
 
-export default async function TeamsPage() {
-  const allTeams = await getTeams()
+export default async function TeamsPage({ params }) {
+  const { league: slug } = await params
+  const league = await resolveLeague(slug)
+  const basePath = leaguePrefix(league)
+
+  const allTeams = await getTeams(league.id)
 
   // Sort teams by win percentage
   const teams = [...allTeams].sort((a, b) => {
@@ -36,7 +45,7 @@ export default async function TeamsPage() {
         <div className="container pb-16">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {teams.map((team, index) => (
-              <Link key={team.id} href={`/teams/${team.id}`}>
+              <Link key={team.id} href={`${basePath}/teams/${team.id}`}>
                 <div className="bg-[#121212] border border-white/10 p-6 brutal-hover cursor-pointer h-full">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
@@ -108,7 +117,7 @@ export default async function TeamsPage() {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={leagueWordmark(league)} />
     </div>
   )
 }

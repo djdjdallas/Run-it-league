@@ -10,8 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { calculateWinPercentage } from "@/lib/utils"
+import { useLeague } from "@/components/use-league"
 
 export function StandingsTable({ teams }) {
+  const { lp } = useLeague()
   // Sort teams by win percentage, then by wins
   const sortedTeams = [...teams].sort((a, b) => {
     const pctA = calculateWinPercentage(a.wins, a.losses)
@@ -46,7 +48,7 @@ export function StandingsTable({ teams }) {
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
                 <Link
-                  href={`/teams/${team.id}`}
+                  href={lp(`/teams/${team.id}`)}
                   className="flex items-center space-x-3 hover:underline"
                 >
                   {team.logo_url ? (

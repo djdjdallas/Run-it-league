@@ -1,5 +1,6 @@
 import { getRegistrations, getTeamRegistrations } from "@/lib/queries"
 import RegistrationsClient from "./registrations-client"
+import { getAdminLeague } from "@/lib/leagues"
 
 export const metadata = {
   title: "Registrations - Admin - Run It League",
@@ -7,9 +8,10 @@ export const metadata = {
 }
 
 export default async function AdminRegistrationsPage() {
+  const league = await getAdminLeague()
   const [registrations, teamRegistrations] = await Promise.all([
-    getRegistrations(),
-    getTeamRegistrations(),
+    getRegistrations(league.id),
+    getTeamRegistrations(league.id),
   ])
 
   return (

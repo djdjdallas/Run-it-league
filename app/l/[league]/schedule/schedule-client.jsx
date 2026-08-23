@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer"
 import { Calendar, List } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
-export default function ScheduleClient({ games, teams }) {
+export default function ScheduleClient({ games, teams, wordmark }) {
   const [teamFilter, setTeamFilter] = useState("all")
   const [view, setView] = useState("list")
   // Default to Results when there are final games but nothing left on the calendar
@@ -184,7 +184,7 @@ export default function ScheduleClient({ games, teams }) {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={wordmark} />
     </div>
   )
 }

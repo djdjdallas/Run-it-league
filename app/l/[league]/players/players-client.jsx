@@ -5,8 +5,10 @@ import Link from "next/link"
 import { Select } from "@/components/ui/select"
 import { Footer } from "@/components/footer"
 import { Search } from "lucide-react"
+import { useLeague } from "@/components/use-league"
 
-export default function PlayersClient({ players, teams, playerStats }) {
+export default function PlayersClient({ players, teams, playerStats, wordmark }) {
+  const { lp } = useLeague()
   const [searchQuery, setSearchQuery] = useState("")
   const [teamFilter, setTeamFilter] = useState("all")
   const [positionFilter, setPositionFilter] = useState("all")
@@ -117,7 +119,7 @@ export default function PlayersClient({ players, teams, playerStats }) {
           {/* Player Grid */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredPlayers.map((player) => (
-              <Link key={player.id} href={`/players/${player.id}`}>
+              <Link key={player.id} href={lp(`/players/${player.id}`)}>
                 <div className="bg-[#121212] border border-white/10 p-4 brutal-hover cursor-pointer h-full">
                   <div className="flex items-start gap-4">
                     {player.photo_url ? (
@@ -180,7 +182,7 @@ export default function PlayersClient({ players, teams, playerStats }) {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={wordmark} />
     </div>
   )
 }
