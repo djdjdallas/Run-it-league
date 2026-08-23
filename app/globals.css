@@ -26,6 +26,12 @@
     --input: 0 0% 15%;
     --ring: 1 66% 48%;
     --radius: 0.125rem;
+
+    /* Accent triad, space-separated RGB so Tailwind can apply alpha.
+       Overridden per-league; these are the Run It League defaults. */
+    --neon: 201 43 42;      /* neon red   #C92B2A */
+    --neon-2: 201 43 42;    /* secondary  (same as primary by default) */
+    --neon-3: 201 43 42;    /* tertiary   (same as primary by default) */
   }
 }
 
@@ -58,7 +64,7 @@
   }
 
   .neon-glow {
-    text-shadow: 0 0 20px rgba(201, 43, 42, 0.5), 0 0 40px rgba(201, 43, 42, 0.2);
+    text-shadow: 0 0 20px rgb(var(--neon) / 0.5), 0 0 40px rgb(var(--neon) / 0.2);
   }
 
   .brutal-hover {
@@ -66,7 +72,7 @@
   }
   .brutal-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 4px 4px 0px #C92B2A;
+    box-shadow: 4px 4px 0px rgb(var(--neon));
   }
 
   .clip-slant {

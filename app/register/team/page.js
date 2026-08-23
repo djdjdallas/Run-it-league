@@ -420,7 +420,7 @@ export default function TeamRegisterPage() {
                           type="checkbox"
                           checked={formData.waiver_signed}
                           onChange={(e) => updateField("waiver_signed", e.target.checked)}
-                          className="mt-1 accent-[#C92B2A]"
+                          className="mt-1 accent-neon"
                         />
                         <span className="text-sm text-white/60">
                           I agree to the{" "}

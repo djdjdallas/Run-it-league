@@ -38,7 +38,7 @@ export default async function HomePage() {
         {/* ===== HERO ===== */}
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808]">
           {/* Subtle radial glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,43,42,0.08)_0%,_transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgb(var(--neon)/0.08)_0%,_transparent_70%)]" />
 
           <div className="container relative z-10 text-center py-20">
             <Image
