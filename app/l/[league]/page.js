@@ -3,11 +3,13 @@ import Image from "next/image"
 import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { MarqueeTicker } from "@/components/marquee-ticker"
+import { WaveCrest } from "@/components/wave-crest"
+import { greetingsFor } from "@/lib/league-greetings"
 import { MatchupCard } from "@/components/matchup-card"
 import { GameCard } from "@/components/game-card"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
 import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
-import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
+import { resolveLeague, leaguePrefix, leagueWordmark, leaguePattern } from "@/lib/leagues"
 import { calculateWinPercentage, formatDate, formatTime } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
@@ -23,6 +25,10 @@ export default async function HomePage({ params }) {
   const { league: slug } = await params
   const league = await resolveLeague(slug)
   const basePath = leaguePrefix(league)
+  // A league can supply its own hero artwork through theme.hero_url -- a
+  // full URL, or a path under /public. Falls back to the drawn SVG wave.
+  const heroUrl = league.theme?.hero_url || null
+  const hasWave = !heroUrl && leaguePattern(league) === "seigaiha"
 
   const [teams, recentGames, upcomingGames, allAnnouncements, sponsors] = await Promise.all([
     getTeams(league.id),
@@ -34,8 +40,10 @@ export default async function HomePage({ params }) {
 
   const announcements = allAnnouncements.slice(0, 3)
 
-  // Build marquee items
+  // Build marquee items. Greetings lead, so the first thing the ticker says
+  // is hello in the languages of the communities the league serves.
   const marqueeItems = [
+    ...greetingsFor(league),
     "SPRING 2026 SEASON",
     ...upcomingGames.slice(0, 3).map(
       (g) => `${g.home_team?.name || "TBD"} vs ${g.away_team?.name || "TBD"} — ${formatDate(g.game_date)}`
@@ -50,9 +58,41 @@ export default async function HomePage({ params }) {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         {/* ===== HERO ===== */}
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808]">
+        <section
+          className={`relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808] ${
+            // Clear the wave at the foot of the hero, so nothing sits on it.
+            hasWave || heroUrl ? "pb-[30vh]" : ""
+          }`}
+        >
           {/* Subtle radial glow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgb(var(--neon-2)/0.08)_0%,_transparent_70%)]" />
+
+          {/* The league's own artwork, filling the foot of the hero. Its top
+              edge is feathered so it blends into the page ground and can
+              never collide with the text above it. */}
+          {heroUrl && (
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-[38vh] min-h-[220px]"
+              style={{
+                maskImage: "linear-gradient(to bottom, transparent 0%, black 38%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 38%)",
+              }}
+            >
+              <Image
+                src={heroUrl}
+                alt=""
+                aria-hidden="true"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-bottom"
+              />
+            </div>
+          )}
+
+          {hasWave && (
+            <WaveCrest className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-[30vh] min-h-[190px]" />
+          )}
 
           <div className="container relative z-10 text-center py-20">
             <Image

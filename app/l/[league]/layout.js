@@ -14,6 +14,7 @@ export default async function LeagueLayout({ children, params }) {
     <div
       data-league={league.slug}
       data-pattern={leaguePattern(league)}
+      data-texture={leaguePattern(league)}
       style={leagueThemeStyle(league)}
     >
       {children}

@@ -43,16 +43,19 @@ export function Header({ leagues = [] }) {
     league.is_default ? section : `/l/${league.slug}${section === "/" ? "" : section}`
 
   const activeLeague = leagues.find((l) => l.slug === currentSlug)
+  // The header sits outside the league wrapper (it renders from the root
+  // layout), so it carries the pattern attribute itself to pick up the skin.
+  const pattern = activeLeague?.theme?.pattern || "grain"
   const { head: wordmarkHead, tail: wordmarkTail } = splitWordmark(
     activeLeague?.theme?.wordmark || "RUN IT LEAGUE"
   )
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-50">
+      <div className="fixed top-0 left-0 right-0 z-50" data-pattern={pattern}>
         {/* ===== LEAGUE SWITCHER ===== */}
         {showSwitcher && (
-          <div className="w-full bg-black border-b border-white/10">
+          <div className="league-switcher-bar w-full bg-black border-b border-white/10">
             <div className="container flex items-center gap-1 h-9">
               <span className="hidden sm:block text-white/30 text-[10px] uppercase tracking-[0.2em] mr-3">
                 League
