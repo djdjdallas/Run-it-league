@@ -15,7 +15,7 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body className="font-sans antialiased grain-overlay">
+      <body className="font-sans antialiased">
         <Header leagues={leagues} />
         {children}
       </body>

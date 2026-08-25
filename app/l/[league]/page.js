@@ -3,11 +3,12 @@ import Image from "next/image"
 import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { MarqueeTicker } from "@/components/marquee-ticker"
+import { WaveCrest } from "@/components/wave-crest"
 import { MatchupCard } from "@/components/matchup-card"
 import { GameCard } from "@/components/game-card"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
 import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
-import { resolveLeague, leaguePrefix, leagueWordmark } from "@/lib/leagues"
+import { resolveLeague, leaguePrefix, leagueWordmark, leaguePattern } from "@/lib/leagues"
 import { calculateWinPercentage, formatDate, formatTime } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
@@ -23,6 +24,7 @@ export default async function HomePage({ params }) {
   const { league: slug } = await params
   const league = await resolveLeague(slug)
   const basePath = leaguePrefix(league)
+  const hasWave = leaguePattern(league) === "seigaiha"
 
   const [teams, recentGames, upcomingGames, allAnnouncements, sponsors] = await Promise.all([
     getTeams(league.id),
@@ -50,9 +52,19 @@ export default async function HomePage({ params }) {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         {/* ===== HERO ===== */}
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808]">
+        <section
+          className={`relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808] ${
+            // Clear the wave at the foot of the hero, so nothing sits on it.
+            hasWave ? "pb-[30vh]" : ""
+          }`}
+        >
           {/* Subtle radial glow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgb(var(--neon-2)/0.08)_0%,_transparent_70%)]" />
+
+          {/* The league's own wave, filling the foot of the hero. */}
+          {hasWave && (
+            <WaveCrest className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-[30vh] min-h-[190px]" />
+          )}
 
           <div className="container relative z-10 text-center py-20">
             <Image
