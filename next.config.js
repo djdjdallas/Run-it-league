@@ -13,6 +13,7 @@ const DEFAULT_LEAGUE_SLUG = 'run-it'
 // Top-level public sections. Anything not listed here (admin, api, register,
 // team-roster) is untouched and keeps serving from app/ directly.
 const LEAGUE_SECTIONS = [
+  'register',
   'teams',
   'players',
   'schedule',

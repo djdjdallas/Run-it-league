@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Footer } from "@/components/footer"
+import { useLeague } from "@/components/use-league"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import {
   Users,
@@ -14,7 +15,8 @@ import {
 
 const teamRegistrationFee = 500.00
 
-export default function RegisterLandingClient({ sponsors }) {
+export default function RegisterLandingClient({ sponsors, leagueName, wordmark }) {
+  const { lp } = useLeague()
   return (
     <div className="min-h-screen flex flex-col bg-[#080808]">
       <main className="flex-1">
@@ -26,7 +28,7 @@ export default function RegisterLandingClient({ sponsors }) {
               Join Run It League
             </h1>
             <p className="text-xl text-white/60 max-w-2xl mx-auto">
-              Register your team for the upcoming season and compete against the best local talent
+              Register your team for the upcoming {leagueName} season and compete against the best local talent
             </p>
           </div>
         </section>
@@ -86,7 +88,7 @@ export default function RegisterLandingClient({ sponsors }) {
               </div>
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/register/team"
+                  href={lp("/register/team")}
                   className="inline-flex items-center gap-2 bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
                 >
                   Register Your Team
@@ -155,7 +157,7 @@ export default function RegisterLandingClient({ sponsors }) {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer wordmark={wordmark} />
     </div>
   )
 }

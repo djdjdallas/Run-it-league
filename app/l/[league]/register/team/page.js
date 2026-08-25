@@ -15,10 +15,12 @@ import {
   Palette,
   Mail,
 } from "lucide-react"
+import { useLeague } from "@/components/use-league"
 
 const teamRegistrationFee = 500.00
 
 export default function TeamRegisterPage() {
+  const { slug: leagueSlug, lp } = useLeague()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -92,6 +94,8 @@ export default function TeamRegisterPage() {
           captain_name: formData.captain_name,
           captain_email: formData.captain_email,
           captain_phone: formData.captain_phone,
+          // Null for the default league, which the API resolves itself.
+          league: leagueSlug,
         }),
       })
 
@@ -156,7 +160,7 @@ export default function TeamRegisterPage() {
                     Enter Roster
                   </Link>
                   <Link
-                    href="/"
+                    href={lp("/")}
                     className="inline-flex items-center gap-2 border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors"
                   >
                     Return to Home

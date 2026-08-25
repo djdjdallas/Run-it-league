@@ -47,6 +47,9 @@ export default function RosterCompletePage() {
     }
   }, [token])
 
+  // Empty for the default league, which is served from the site root.
+  const basePath = registration?.league_base_path || ""
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#080808]">
@@ -129,14 +132,14 @@ export default function RosterCompletePage() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/teams"
+              href={`${basePath}/teams`}
               className="flex-1 text-center bg-neon text-black py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors inline-flex items-center justify-center gap-2"
             >
               <Users className="h-4 w-4" />
               View Teams
             </Link>
             <Link
-              href="/schedule"
+              href={`${basePath}/schedule`}
               className="flex-1 text-center border border-white/20 text-white py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors inline-flex items-center justify-center gap-2"
             >
               <Calendar className="h-4 w-4" />
@@ -147,7 +150,7 @@ export default function RosterCompletePage() {
           {/* Home Link */}
           <div className="text-center mt-6 pt-6 border-t border-white/10">
             <Link
-              href="/"
+              href={basePath || "/"}
               className="text-sm text-white/40 hover:text-neon transition-colors"
             >
               Return to Home

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { withLeague } from "@/lib/league-path"
 
 const MIN_PLAYERS = 5
 
@@ -49,13 +50,16 @@ export async function POST(request, { params }) {
 
     const { data: team, error: teamError } = await supabase
       .from("teams")
-      .insert({
+      // The team inherits the league its registration was filed under.
+      // Without this it would fall to the database default and a team that
+      // registered for the AAPI league would be created in Run It.
+      .insert(withLeague({
         name: registration.team_name,
         abbreviation: registration.team_name.substring(0, 3).toUpperCase(),
         primary_color: registration.primary_color,
         secondary_color: registration.secondary_color,
         season_id: registration.season_id || null,
-      })
+      }, registration.league_id))
       .select()
       .single()
 
@@ -67,11 +71,12 @@ export async function POST(request, { params }) {
       )
     }
 
-    const playerRecords = players.map((p) => ({
-      team_id: team.id,
-      name: p.player_name,
-      is_active: true,
-    }))
+    const playerRecords = players.map((p) =>
+      withLeague(
+        { team_id: team.id, name: p.player_name, is_active: true },
+        registration.league_id
+      )
+    )
 
     const { error: playersInsertError } = await supabase
       .from("players")

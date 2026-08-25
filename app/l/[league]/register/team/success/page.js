@@ -13,8 +13,10 @@ import {
   Mail,
   ExternalLink,
 } from "lucide-react"
+import { useLeague } from "@/components/use-league"
 
 export default function TeamRegistrationSuccessPage() {
+  const { lp } = useLeague()
   const searchParams = useSearchParams()
   const [registration, setRegistration] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -210,13 +212,13 @@ export default function TeamRegistrationSuccessPage() {
           {/* Footer Links */}
           <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-white/10">
             <Link
-              href="/"
+              href={lp("/")}
               className="flex-1 text-center border border-white/20 text-white py-3 text-sm font-bold uppercase tracking-wider hover:border-neon hover:text-neon transition-colors"
             >
               Return to Home
             </Link>
             <Link
-              href="/schedule"
+              href={lp("/schedule")}
               className="flex-1 text-center border border-white/20 text-white py-3 text-sm font-bold uppercase tracking-wider hover:border-neon hover:text-neon transition-colors"
             >
               View Schedule

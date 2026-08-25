@@ -85,7 +85,7 @@ export default async function HomePage({ params }) {
                 View Schedule
               </Link>
               <Link
-                href="/register"
+                href={`${basePath}/register`}
                 className="border border-white/20 text-white px-8 py-3 font-bold uppercase tracking-wider text-sm hover:border-neon hover:text-neon transition-colors inline-flex items-center gap-2"
               >
                 Register Now
@@ -300,7 +300,7 @@ export default async function HomePage({ params }) {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link
-                href="/register"
+                href={`${basePath}/register`}
                 className="bg-neon text-black px-8 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
               >
                 Register Your Team

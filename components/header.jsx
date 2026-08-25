@@ -120,7 +120,7 @@ export function Header({ leagues = [] }) {
             {/* Desktop CTAs */}
             <div className="hidden md:flex items-center gap-3">
               <Link
-                href="/register"
+                href={lp("/register")}
                 className="bg-neon text-black px-4 py-2 text-sm font-bold uppercase tracking-wider hover:bg-neon/90 transition-colors"
               >
                 Register
@@ -161,7 +161,7 @@ export function Header({ leagues = [] }) {
                   </Link>
                 ))}
                 <Link
-                  href="/register"
+                  href={lp("/register")}
                   className="bg-neon text-black px-4 py-2 text-sm font-bold uppercase tracking-wider text-center mt-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >

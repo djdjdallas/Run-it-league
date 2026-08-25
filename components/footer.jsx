@@ -70,7 +70,7 @@ export function Footer({ wordmark }) {
                 </Link>
               </li>
               <li>
-                <Link href="/register" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/register")} className="text-white/50 hover:text-neon transition-colors">
                   Register
                 </Link>
               </li>

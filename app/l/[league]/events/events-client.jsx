@@ -238,7 +238,7 @@ export default function EventsClient({ events, sponsors, wordmark }) {
                 Register now for the upcoming season and be part of the action.
               </p>
               <Link
-                href="/register"
+                href={lp("/register")}
                 className="inline-flex items-center gap-1 bg-neon text-black px-6 py-3 font-bold uppercase tracking-wider text-sm hover:bg-neon/90 transition-colors"
               >
                 Register Now
