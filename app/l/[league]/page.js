@@ -25,7 +25,10 @@ export default async function HomePage({ params }) {
   const { league: slug } = await params
   const league = await resolveLeague(slug)
   const basePath = leaguePrefix(league)
-  const hasWave = leaguePattern(league) === "seigaiha"
+  // A league can supply its own hero artwork through theme.hero_url -- a
+  // full URL, or a path under /public. Falls back to the drawn SVG wave.
+  const heroUrl = league.theme?.hero_url || null
+  const hasWave = !heroUrl && leaguePattern(league) === "seigaiha"
 
   const [teams, recentGames, upcomingGames, allAnnouncements, sponsors] = await Promise.all([
     getTeams(league.id),
@@ -58,13 +61,35 @@ export default async function HomePage({ params }) {
         <section
           className={`relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808] ${
             // Clear the wave at the foot of the hero, so nothing sits on it.
-            hasWave ? "pb-[30vh]" : ""
+            hasWave || heroUrl ? "pb-[30vh]" : ""
           }`}
         >
           {/* Subtle radial glow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgb(var(--neon-2)/0.08)_0%,_transparent_70%)]" />
 
-          {/* The league's own wave, filling the foot of the hero. */}
+          {/* The league's own artwork, filling the foot of the hero. Its top
+              edge is feathered so it blends into the page ground and can
+              never collide with the text above it. */}
+          {heroUrl && (
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-[38vh] min-h-[220px]"
+              style={{
+                maskImage: "linear-gradient(to bottom, transparent 0%, black 38%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 38%)",
+              }}
+            >
+              <Image
+                src={heroUrl}
+                alt=""
+                aria-hidden="true"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-bottom"
+              />
+            </div>
+          )}
+
           {hasWave && (
             <WaveCrest className="pointer-events-none absolute inset-x-0 bottom-0 w-full h-[30vh] min-h-[190px]" />
           )}
