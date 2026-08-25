@@ -52,12 +52,12 @@ export default async function HomePage({ params }) {
         {/* ===== HERO ===== */}
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#080808]">
           {/* Subtle radial glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgb(var(--neon)/0.08)_0%,_transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgb(var(--neon-2)/0.08)_0%,_transparent_70%)]" />
 
           <div className="container relative z-10 text-center py-20">
             <Image
-              src="/assets/Runit.png"
-              alt="Run It League"
+              src={league.logo_url || "/assets/Runit.png"}
+              alt={league.name}
               width={300}
               height={300}
               className="mx-auto mb-8"
@@ -73,7 +73,7 @@ export default async function HomePage({ params }) {
             </h2>
 
             <p className="text-white/60 text-lg md:text-xl max-w-xl mx-auto mb-10">
-              Where legends are made. Competitive basketball, organized.
+              {league.tagline || "Where legends are made. Competitive basketball, organized."}
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-12">
