@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import { MarqueeTicker } from "@/components/marquee-ticker"
 import { WaveCrest } from "@/components/wave-crest"
+import { greetingsFor } from "@/lib/league-greetings"
 import { MatchupCard } from "@/components/matchup-card"
 import { GameCard } from "@/components/game-card"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
@@ -36,8 +37,10 @@ export default async function HomePage({ params }) {
 
   const announcements = allAnnouncements.slice(0, 3)
 
-  // Build marquee items
+  // Build marquee items. Greetings lead, so the first thing the ticker says
+  // is hello in the languages of the communities the league serves.
   const marqueeItems = [
+    ...greetingsFor(league),
     "SPRING 2026 SEASON",
     ...upcomingGames.slice(0, 3).map(
       (g) => `${g.home_team?.name || "TBD"} vs ${g.away_team?.name || "TBD"} — ${formatDate(g.game_date)}`
