@@ -11,7 +11,7 @@ export function MarqueeTicker({ items = [] }) {
   ))
 
   return (
-    <div className="bg-neon overflow-hidden py-3 group">
+    <div className="marquee-bar bg-neon overflow-hidden py-3 group">
       <div className="flex gap-4 animate-marquee group-hover:[animation-play-state:paused] w-max">
         {content}
         {content}

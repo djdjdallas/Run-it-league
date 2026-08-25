@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, UserCircle, Calendar, Megaphone, TrendingUp, ScanLine } from "lucide-react"
 import { getDashboardStats, getRecentGames, getUpcomingGames } from "@/lib/queries"
+import { getAdminLeague } from "@/lib/leagues"
 
 export const metadata = {
   title: "Admin Dashboard - Run It League",
@@ -10,10 +11,11 @@ export const metadata = {
 }
 
 export default async function AdminDashboardPage() {
+  const league = await getAdminLeague()
   const [stats, recentGames, upcomingGames] = await Promise.all([
-    getDashboardStats(),
-    getRecentGames(5),
-    getUpcomingGames(5),
+    getDashboardStats(league.id),
+    getRecentGames(league.id, 5),
+    getUpcomingGames(league.id, 5),
   ])
 
   return (

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { getLeagueById } from "@/lib/leagues"
+import { leaguePrefix } from "@/lib/league-path"
 
 export async function GET(request, { params }) {
   try {
@@ -42,9 +44,15 @@ export async function GET(request, { params }) {
       .eq("team_registration_id", registration.id)
       .order("created_at", { ascending: true })
 
+    // The roster pages are reached by token rather than by a league URL, so
+    // they need the league here to link back into the right one.
+    const league = await getLeagueById(registration.league_id)
+
     return NextResponse.json({
       registration: {
         id: registration.id,
+        league_name: league?.name || null,
+        league_base_path: leaguePrefix(league),
         team_name: registration.team_name,
         primary_color: registration.primary_color,
         secondary_color: registration.secondary_color,

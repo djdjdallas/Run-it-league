@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { resolveLeague } from "@/lib/leagues"
+import { withLeague } from "@/lib/league-path"
 
 function generateToken() {
   return crypto.randomBytes(32).toString("hex")
@@ -16,6 +18,7 @@ export async function POST(request) {
       captain_name,
       captain_email,
       captain_phone,
+      league: leagueSlug,
     } = body
 
     if (!team_name || !captain_name || !captain_email) {
@@ -27,12 +30,26 @@ export async function POST(request) {
 
     const supabase = await createServerSupabaseClient()
 
-    // Get current season if one exists
-    const { data: season } = await supabase
+    // Which league is this team registering for. An unknown slug is rejected
+    // rather than quietly filed under the default league -- a team landing in
+    // the wrong league is invisible until someone notices it missing.
+    const league = await resolveLeague(leagueSlug || undefined)
+    if (!league) {
+      return NextResponse.json(
+        { error: "Unknown league" },
+        { status: 400 }
+      )
+    }
+
+    // Seasons are per-league, so is_current matches one row per league and an
+    // unscoped .single() would error once both leagues have a current season.
+    let seasonQuery = supabase
       .from("seasons")
       .select("id")
       .eq("is_current", true)
-      .single()
+    if (league.id) seasonQuery = seasonQuery.eq("league_id", league.id)
+
+    const { data: season } = await seasonQuery.maybeSingle()
 
     const roster_token = generateToken()
     const roster_token_expires_at = new Date(
@@ -41,7 +58,7 @@ export async function POST(request) {
 
     const { data, error } = await supabase
       .from("team_registrations")
-      .insert({
+      .insert(withLeague({
         team_name,
         primary_color: primary_color || "#000000",
         secondary_color: secondary_color || "#FFFFFF",
@@ -54,7 +71,7 @@ export async function POST(request) {
         min_players: 5,
         max_players: 15,
         season_id: season?.id || null,
-      })
+      }, league.id))
       .select()
       .single()
 

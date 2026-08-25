@@ -13,20 +13,22 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ArrowLeft, Pencil, Plus, Users } from "lucide-react"
+import { getAdminLeague } from "@/lib/leagues"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const team = await getTeamById(id)
+  const team = await getTeamById(league.id, id)
   return {
     title: `${team?.name || "Team"} - Admin - Run It League`,
   }
 }
 
 export default async function AdminTeamDetailPage({ params }) {
+  const league = await getAdminLeague()
   const { id } = await params
   const [team, players] = await Promise.all([
-    getTeamById(id),
-    getAllPlayersByTeam(id),
+    getTeamById(league.id, id),
+    getAllPlayersByTeam(league.id, id),
   ])
 
   if (!team) notFound()

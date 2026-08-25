@@ -1,10 +1,11 @@
 import { getGameById, getPlayersByTeam, getStatsByGame } from "@/lib/queries"
 import { notFound } from "next/navigation"
 import GameStatsClient from "./game-stats-client"
+import { getAdminLeague } from "@/lib/leagues"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
-  const game = await getGameById(id)
+  const game = await getGameById(league.id, id)
   if (!game) return { title: "Game Not Found" }
 
   return {
@@ -14,17 +15,18 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function GameStatsPage({ params }) {
+  const league = await getAdminLeague()
   const { id } = await params
-  const game = await getGameById(id)
+  const game = await getGameById(league.id, id)
 
   if (!game) {
     notFound()
   }
 
   const [homeRoster, awayRoster, existingStats] = await Promise.all([
-    getPlayersByTeam(game.home_team_id),
-    getPlayersByTeam(game.away_team_id),
-    getStatsByGame(id),
+    getPlayersByTeam(league.id, game.home_team_id),
+    getPlayersByTeam(league.id, game.away_team_id),
+    getStatsByGame(league.id, id),
   ])
 
   return (

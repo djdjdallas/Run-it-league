@@ -1,16 +1,22 @@
-import Link from "next/link"
+"use client"
 
-export function Footer() {
+import Link from "next/link"
+import { useLeague } from "@/components/use-league"
+import { splitWordmark } from "@/lib/league-path"
+
+export function Footer({ wordmark }) {
+  const { lp } = useLeague()
+  const { head, tail } = splitWordmark(wordmark)
   return (
     <footer className="bg-[#080808] border-t border-white/10">
       <div className="container py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
           {/* Logo & Description */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="inline-block mb-4">
+            <Link href={lp("/")} className="inline-block mb-4">
               <span className="font-display text-xl tracking-tight">
-                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">RUN IT</span>
-                <span className="text-white ml-1">LEAGUE</span>
+                <span className="bg-neon text-black px-1.5 py-0.5 inline-block">{head}</span>
+                {tail && <span className="text-white ml-1">{tail}</span>}
               </span>
             </Link>
             <p className="text-sm text-white/40 leading-relaxed">
@@ -25,22 +31,22 @@ export function Footer() {
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/teams" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/teams")} className="text-white/50 hover:text-neon transition-colors">
                   Teams
                 </Link>
               </li>
               <li>
-                <Link href="/schedule" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/schedule")} className="text-white/50 hover:text-neon transition-colors">
                   Schedule
                 </Link>
               </li>
               <li>
-                <Link href="/stats" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/stats")} className="text-white/50 hover:text-neon transition-colors">
                   Stats
                 </Link>
               </li>
               <li>
-                <Link href="/gallery" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/gallery")} className="text-white/50 hover:text-neon transition-colors">
                   Gallery
                 </Link>
               </li>
@@ -54,17 +60,17 @@ export function Footer() {
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/teams" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/teams")} className="text-white/50 hover:text-neon transition-colors">
                   Standings
                 </Link>
               </li>
               <li>
-                <Link href="/schedule" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/schedule")} className="text-white/50 hover:text-neon transition-colors">
                   Games
                 </Link>
               </li>
               <li>
-                <Link href="/register" className="text-white/50 hover:text-neon transition-colors">
+                <Link href={lp("/register")} className="text-white/50 hover:text-neon transition-colors">
                   Register
                 </Link>
               </li>

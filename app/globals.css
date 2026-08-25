@@ -26,6 +26,12 @@
     --input: 0 0% 15%;
     --ring: 1 66% 48%;
     --radius: 0.125rem;
+
+    /* Accent triad, space-separated RGB so Tailwind can apply alpha.
+       Overridden per-league; these are the Run It League defaults. */
+    --neon: 201 43 42;      /* neon red   #C92B2A */
+    --neon-2: 201 43 42;    /* secondary  (same as primary by default) */
+    --neon-3: 201 43 42;    /* tertiary   (same as primary by default) */
   }
 }
 
@@ -52,13 +58,13 @@
     opacity: 0.03;
     pointer-events: none;
     z-index: 9999;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cpath%20d%3D%22M-30%2C30A30%2C30%200%200%201%2030%2C30M-22.5%2C30A22.5%2C22.5%200%200%201%2022.5%2C30M-15%2C30A15%2C15%200%200%201%2015%2C30M-7.5%2C30A7.5%2C7.5%200%200%201%207.5%2C30M30%2C30A30%2C30%200%200%201%2090%2C30M37.5%2C30A22.5%2C22.5%200%200%201%2082.5%2C30M45%2C30A15%2C15%200%200%201%2075%2C30M52.5%2C30A7.5%2C7.5%200%200%201%2067.5%2C30M-60%2C60A30%2C30%200%200%201%200%2C60M-52.5%2C60A22.5%2C22.5%200%200%201%20-7.5%2C60M-45%2C60A15%2C15%200%200%201%20-15%2C60M-37.5%2C60A7.5%2C7.5%200%200%201%20-22.5%2C60M0%2C60A30%2C30%200%200%201%2060%2C60M7.5%2C60A22.5%2C22.5%200%200%201%2052.5%2C60M15%2C60A15%2C15%200%200%201%2045%2C60M22.5%2C60A7.5%2C7.5%200%200%201%2037.5%2C60M60%2C60A30%2C30%200%200%201%20120%2C60M67.5%2C60A22.5%2C22.5%200%200%201%20112.5%2C60M75%2C60A15%2C15%200%200%201%20105%2C60M82.5%2C60A7.5%2C7.5%200%200%201%2097.5%2C60%22%20fill%3D%22none%22%20stroke%3D%22%23A9C6E4%22%20stroke-width%3D%221.25%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: repeat;
     background-size: 256px 256px;
   }
 
   .neon-glow {
-    text-shadow: 0 0 20px rgba(201, 43, 42, 0.5), 0 0 40px rgba(201, 43, 42, 0.2);
+    text-shadow: 0 0 20px rgb(var(--neon) / 0.5), 0 0 40px rgb(var(--neon) / 0.2);
   }
 
   .brutal-hover {
@@ -66,7 +72,7 @@
   }
   .brutal-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 4px 4px 0px #C92B2A;
+    box-shadow: 4px 4px 0px rgb(var(--neon));
   }
 
   .clip-slant {
@@ -77,4 +83,97 @@
     font-family: "Tanker", ui-sans-serif, system-ui, sans-serif;
     text-transform: uppercase;
   }
+}
+
+/* ============================================================
+   LEAGUE SKINS
+   ============================================================
+   Keyed off the data attributes set by app/l/[league]/layout.js, so a
+   league is re-skinned without any component knowing about it.
+
+   Only the AAPI league has a skin today. Run It keeps the plain dark
+   brutalist treatment, and its --neon-2 / --neon-3 resolve to the same red
+   as --neon, so the shared rules below are no-ops there.
+   ============================================================ */
+
+@layer utilities {
+  /* Seigaiha (青海波): overlapping wave scales, the motif that runs through
+     the league's artwork. Concentric upper-semicircles on a half-offset
+     lattice; the 60x60 tile holds two rows so it repeats seamlessly.
+
+     Sits behind the content, not over it: an overlay veils the logo and
+     headings and reads as a screen door. Page-level backgrounds are made
+     transparent below so this shows through, while cards keep their own
+     solid fill and sit on top -- paper behind, cards on it. */
+  [data-pattern="seigaiha"]::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.13;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cpath%20d%3D%22M-30%2C30A30%2C30%200%200%201%2030%2C30M-22.5%2C30A22.5%2C22.5%200%200%201%2022.5%2C30M-15%2C30A15%2C15%200%200%201%2015%2C30M-7.5%2C30A7.5%2C7.5%200%200%201%207.5%2C30M30%2C30A30%2C30%200%200%201%2090%2C30M37.5%2C30A22.5%2C22.5%200%200%201%2082.5%2C30M45%2C30A15%2C15%200%200%201%2075%2C30M52.5%2C30A7.5%2C7.5%200%200%201%2067.5%2C30M-60%2C60A30%2C30%200%200%201%200%2C60M-52.5%2C60A22.5%2C22.5%200%200%201%20-7.5%2C60M-45%2C60A15%2C15%200%200%201%20-15%2C60M-37.5%2C60A7.5%2C7.5%200%200%201%20-22.5%2C60M0%2C60A30%2C30%200%200%201%2060%2C60M7.5%2C60A22.5%2C22.5%200%200%201%2052.5%2C60M15%2C60A15%2C15%200%200%201%2045%2C60M22.5%2C60A7.5%2C7.5%200%200%201%2037.5%2C60M60%2C60A30%2C30%200%200%201%20120%2C60M67.5%2C60A22.5%2C22.5%200%200%201%20112.5%2C60M75%2C60A15%2C15%200%200%201%20105%2C60M82.5%2C60A7.5%2C7.5%200%200%201%2097.5%2C60%22%20fill%3D%22none%22%20stroke%3D%22%23A9C6E4%22%20stroke-width%3D%221.25%22%2F%3E%3C%2Fsvg%3E");
+    background-size: 60px 60px;
+    background-repeat: repeat;
+  }
+
+  /* The grain and the wave pattern together read as noise, so the league
+     that has a pattern of its own drops the grain. */
+  body:has([data-pattern="seigaiha"])::before {
+    opacity: 0;
+  }
+
+  /* A cresting-wave edge, standing in for .clip-slant's straight angle.
+     Same structural job, drawn from the same motif. */
+  .clip-wave {
+    clip-path: polygon(
+      0% 6%, 8% 2%, 16% 5%, 24% 1%, 32% 4%, 40% 0%, 48% 3%,
+      56% 0%, 64% 4%, 72% 1%, 80% 5%, 88% 2%, 96% 5%, 100% 3%,
+      100% 100%, 0% 100%
+    );
+  }
+
+  [data-pattern="seigaiha"] .clip-slant {
+    clip-path: polygon(
+      0% 6%, 8% 2%, 16% 5%, 24% 1%, 32% 4%, 40% 0%, 48% 3%,
+      56% 0%, 64% 4%, 72% 1%, 80% 5%, 88% 2%, 96% 5%, 100% 3%,
+      100% 100%, 0% 100%
+    );
+  }
+}
+
+/* Content sits on the texture rather than under it. */
+[data-pattern="seigaiha"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Page-level backgrounds go transparent so the texture reads through. The
+   body keeps painting the same base colour underneath, so nothing changes
+   tonally -- only the flat fill that was hiding the pattern is removed.
+   Cards (#121212) are untouched and stay solid on top. */
+[data-pattern="seigaiha"] .bg-\[\#080808\] {
+  background-color: transparent;
+}
+
+/* Card and divider hairlines pick up the league's secondary accent instead
+   of plain white. Targets the Tailwind border utilities directly so the
+   skin needs no changes in the 26 files that use them. */
+[data-pattern="seigaiha"] .border-white\/10 {
+  border-color: rgb(var(--neon-2) / 0.32);
+}
+[data-pattern="seigaiha"] .divide-white\/10 > * + * {
+  border-color: rgb(var(--neon-2) / 0.32);
+}
+
+/* The one solid-white band on the home page becomes aged paper -- the ground
+   the wave block prints on. */
+[data-pattern="seigaiha"] .bg-white {
+  background-color: #EFE7D6;
+}
+
+/* Tapa-cloth banding: a gold rule under the ticker, echoing the woven
+   borders in the league artwork. */
+[data-pattern="seigaiha"] .marquee-bar {
+  border-bottom: 3px solid rgb(var(--neon-3));
 }

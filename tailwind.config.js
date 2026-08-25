@@ -20,7 +20,12 @@ module.exports = {
         display: ["Tanker", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
-        neon: "#C92B2A",
+        // Accent tokens are CSS-variable backed so a league can re-skin the
+        // whole site by setting --neon/--neon-2/--neon-3 on a layout wrapper.
+        // <alpha-value> keeps opacity modifiers (bg-neon/90) working.
+        neon: "rgb(var(--neon) / <alpha-value>)",
+        "neon-2": "rgb(var(--neon-2) / <alpha-value>)",
+        "neon-3": "rgb(var(--neon-3) / <alpha-value>)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

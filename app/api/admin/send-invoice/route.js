@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { getLeagueById } from "@/lib/leagues"
+import { leaguePrefix } from "@/lib/league-path"
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -36,6 +38,10 @@ export async function POST(request) {
     const stripe = getStripe()
     const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
+    // Send the captain back to their own league's pages after checkout.
+    // Empty for the default league, which is served from the site root.
+    const base = leaguePrefix(await getLeagueById(registration.league_id))
+
     // Create a Stripe checkout session for the admin to send
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -46,8 +52,8 @@ export async function POST(request) {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/register/team/success?registration_id=${team_registration_id}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/register`,
+      success_url: `${origin}${base}/register/team/success?registration_id=${team_registration_id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}${base}/register`,
       customer_email: registration.captain_email,
       metadata: {
         type: "team_registration",

@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import {
   Table,
@@ -9,8 +11,10 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { calculatePercentage } from "@/lib/utils"
+import { useLeague } from "@/components/use-league"
 
 export function BoxScore({ stats, team, players }) {
+  const { lp } = useLeague()
   // Get players for this team's stats
   const teamStats = stats.map((stat) => {
     const player = players.find((p) => p.id === stat.player_id)
@@ -98,7 +102,7 @@ export function BoxScore({ stats, team, players }) {
             <TableRow key={stat.id}>
               <TableCell>
                 <Link
-                  href={`/players/${stat.player?.id}`}
+                  href={lp(`/players/${stat.player?.id}`)}
                   className="text-white/60 hover:text-neon transition-colors"
                 >
                   <span className="text-white/40 mr-2">

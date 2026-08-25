@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { getLeagueById } from "@/lib/leagues"
+import { leaguePrefix } from "@/lib/league-path"
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -21,6 +24,18 @@ export async function POST(request) {
     const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 
     if (type === "team_registration" && team_registration_id) {
+      // Return the captain to their own league's pages after checkout. The
+      // league comes from the registration rather than the request body so a
+      // caller cannot redirect the flow into a different league.
+      const supabase = await createServerSupabaseClient()
+      const { data: registration } = await supabase
+        .from("team_registrations")
+        .select("league_id")
+        .eq("id", team_registration_id)
+        .maybeSingle()
+
+      const base = leaguePrefix(await getLeagueById(registration?.league_id))
+
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [
@@ -30,8 +45,8 @@ export async function POST(request) {
           },
         ],
         mode: "payment",
-        success_url: `${origin}/register/team/success?registration_id=${team_registration_id}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/register/team`,
+        success_url: `${origin}${base}/register/team/success?registration_id=${team_registration_id}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}${base}/register/team`,
         customer_email: email,
         metadata: {
           type: "team_registration",

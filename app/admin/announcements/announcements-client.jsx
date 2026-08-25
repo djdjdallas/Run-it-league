@@ -20,8 +20,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, Pin } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import { withLeague } from "@/lib/league-path"
 
-export default function AnnouncementsClient({ initialAnnouncements }) {
+export default function AnnouncementsClient({ initialAnnouncements, leagueId }) {
   const router = useRouter()
   const [announcements, setAnnouncements] = useState(initialAnnouncements)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -72,7 +73,7 @@ export default function AnnouncementsClient({ initialAnnouncements }) {
     } else {
       const { error } = await supabase
         .from("announcements")
-        .insert(formData)
+        .insert(withLeague(formData, leagueId))
 
       if (error) {
         alert("Failed to create announcement: " + error.message)

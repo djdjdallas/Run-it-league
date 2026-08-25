@@ -1,5 +1,6 @@
 import { getGames } from "@/lib/queries"
 import ScanStatsClient from "./scan-stats-client"
+import { getAdminLeague } from "@/lib/leagues"
 
 export const metadata = {
   title: "Scan Stats - Admin - Run It League",
@@ -7,6 +8,7 @@ export const metadata = {
 }
 
 export default async function ScanStatsPage() {
-  const games = await getGames()
+  const league = await getAdminLeague()
+  const games = await getGames(league.id)
   return <ScanStatsClient games={games} />
 }
