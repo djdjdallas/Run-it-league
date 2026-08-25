@@ -11,5 +11,5 @@ export default async function AdminStreamsPage() {
   const league = await getAdminLeague()
   const [streams, games] = await Promise.all([getStreams(league.id), getGames(league.id)])
 
-  return <StreamsClient initialStreams={streams} games={games} />
+  return <StreamsClient leagueId={league.id} initialStreams={streams} games={games} />
 }

@@ -27,8 +27,9 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
+import { withLeague } from "@/lib/league-path"
 
-export default function TeamsClient({ initialTeams }) {
+export default function TeamsClient({ initialTeams, leagueId }) {
   const router = useRouter()
   const [teams, setTeams] = useState(initialTeams)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -87,7 +88,7 @@ export default function TeamsClient({ initialTeams }) {
     } else {
       const { error } = await supabase
         .from("teams")
-        .insert({ ...data, wins: 0, losses: 0 })
+        .insert(withLeague({ ...data, wins: 0, losses: 0 }, leagueId))
 
       if (error) {
         alert("Failed to create team: " + error.message)

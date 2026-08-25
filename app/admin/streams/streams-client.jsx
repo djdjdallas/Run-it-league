@@ -39,6 +39,7 @@ import {
   Info,
 } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
+import { withLeague } from "@/lib/league-path"
 
 const streamTypeLabels = {
   youtube: "YouTube",
@@ -58,7 +59,7 @@ const emptyForm = {
   is_live: false,
 }
 
-export default function StreamsClient({ initialStreams, games }) {
+export default function StreamsClient({ initialStreams, games, leagueId }) {
   const router = useRouter()
   const [streams, setStreams] = useState(initialStreams)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -152,7 +153,7 @@ export default function StreamsClient({ initialStreams, games }) {
         return
       }
     } else {
-      const { error } = await supabase.from("live_streams").insert(payload)
+      const { error } = await supabase.from("live_streams").insert(withLeague(payload, leagueId))
 
       if (error) {
         alert("Failed to create stream: " + error.message)

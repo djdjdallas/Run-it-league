@@ -6,5 +6,5 @@ export default async function AdminGalleryPage() {
   const league = await getAdminLeague()
   const photos = await getGalleryPhotos(league.id)
 
-  return <GalleryAdminClient initialPhotos={photos} />
+  return <GalleryAdminClient leagueId={league.id} initialPhotos={photos} />
 }

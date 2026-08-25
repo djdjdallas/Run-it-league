@@ -30,8 +30,9 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, TrendingUp } from "lucide-react"
 import { formatDate, formatTime } from "@/lib/utils"
 import { recalcTeamRecords } from "@/lib/game-finalize"
+import { withLeague } from "@/lib/league-path"
 
-export default function GamesClient({ initialGames, teams }) {
+export default function GamesClient({ initialGames, teams, leagueId }) {
   const router = useRouter()
   const [games, setGames] = useState(initialGames)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -113,7 +114,7 @@ export default function GamesClient({ initialGames, teams }) {
     } else {
       const { error } = await supabase
         .from("games")
-        .insert(gameData)
+        .insert(withLeague(gameData, leagueId))
 
       if (error) {
         alert("Failed to create game: " + error.message)

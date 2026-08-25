@@ -21,6 +21,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Plus, Pencil, Trash2, Star, Camera } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
 import { formatDate } from "@/lib/utils"
+import { withLeague } from "@/lib/league-path"
 
 const categories = [
   { id: "all", label: "All" },
@@ -30,7 +31,7 @@ const categories = [
   { id: "general", label: "General" },
 ]
 
-export default function GalleryAdminClient({ initialPhotos }) {
+export default function GalleryAdminClient({ initialPhotos, leagueId }) {
   const router = useRouter()
   const [photos, setPhotos] = useState(initialPhotos)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -104,7 +105,7 @@ export default function GalleryAdminClient({ initialPhotos }) {
     } else {
       const { error } = await supabase
         .from("gallery_photos")
-        .insert(formData)
+        .insert(withLeague(formData, leagueId))
 
       if (error) {
         alert("Failed to add photo: " + error.message)

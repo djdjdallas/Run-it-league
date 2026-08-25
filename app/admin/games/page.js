@@ -14,5 +14,5 @@ export default async function AdminGamesPage() {
     getTeams(league.id),
   ])
 
-  return <GamesClient initialGames={games} teams={teams} />
+  return <GamesClient leagueId={league.id} initialGames={games} teams={teams} />
 }

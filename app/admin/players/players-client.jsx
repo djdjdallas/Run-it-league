@@ -29,8 +29,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Pencil, Trash2, Search } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
+import { withLeague } from "@/lib/league-path"
 
-export default function PlayersClient({ initialPlayers, teams }) {
+export default function PlayersClient({ initialPlayers, teams, leagueId }) {
   const router = useRouter()
   const [players, setPlayers] = useState(initialPlayers)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -116,7 +117,7 @@ export default function PlayersClient({ initialPlayers, teams }) {
     } else {
       const { error } = await supabase
         .from("players")
-        .insert(playerData)
+        .insert(withLeague(playerData, leagueId))
 
       if (error) {
         alert("Failed to create player: " + error.message)

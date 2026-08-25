@@ -20,6 +20,7 @@ import {
   ScanLine,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AdminLeaguePicker } from "@/components/admin-league-picker"
 
 const sidebarLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -35,7 +36,7 @@ const sidebarLinks = [
   { href: "/admin/gallery", label: "Gallery", icon: Image },
 ]
 
-export function AdminSidebar({ onSignOut }) {
+export function AdminSidebar({ onSignOut, leagues = [], currentLeagueSlug }) {
   const pathname = usePathname()
 
   return (
@@ -46,6 +47,8 @@ export function AdminSidebar({ onSignOut }) {
           <span className="font-bold text-lg">Run It Admin</span>
         </Link>
       </div>
+
+      <AdminLeaguePicker leagues={leagues} currentSlug={currentLeagueSlug} />
 
       <nav className="flex-1 p-4 space-y-1">
         {sidebarLinks.map((link) => {

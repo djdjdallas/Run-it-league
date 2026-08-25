@@ -11,5 +11,5 @@ export default async function AdminTeamsPage() {
   const league = await getAdminLeague()
   const teams = await getTeams(league.id)
 
-  return <TeamsClient initialTeams={teams} />
+  return <TeamsClient leagueId={league.id} initialTeams={teams} />
 }

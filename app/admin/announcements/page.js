@@ -11,5 +11,5 @@ export default async function AdminAnnouncementsPage() {
   const league = await getAdminLeague()
   const announcements = await getAnnouncements(league.id)
 
-  return <AnnouncementsClient initialAnnouncements={announcements} />
+  return <AnnouncementsClient leagueId={league.id} initialAnnouncements={announcements} />
 }
