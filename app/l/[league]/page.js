@@ -9,7 +9,7 @@ import { MatchupCard } from "@/components/matchup-card"
 import { GameCard } from "@/components/game-card"
 import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
 import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
-import { resolveLeague, leaguePrefix, leagueWordmark, leaguePattern } from "@/lib/leagues"
+import { resolveLeague, leaguePrefix, leagueWordmark, leaguePattern, heroUrlFor } from "@/lib/leagues"
 import { calculateWinPercentage, formatDate, formatTime } from "@/lib/utils"
 
 export async function generateMetadata({ params }) {
@@ -25,9 +25,10 @@ export default async function HomePage({ params }) {
   const { league: slug } = await params
   const league = await resolveLeague(slug)
   const basePath = leaguePrefix(league)
-  // A league can supply its own hero artwork through theme.hero_url -- a
-  // full URL, or a path under /public. Falls back to the drawn SVG wave.
-  const heroUrl = league.theme?.hero_url || null
+  // A league can supply its own hero artwork through theme.hero_url -- a full
+  // URL, or a path under /public -- falling back to artwork committed for
+  // that league, then to the drawn SVG wave.
+  const heroUrl = heroUrlFor(league)
   const hasWave = !heroUrl && leaguePattern(league) === "seigaiha"
 
   const [teams, recentGames, upcomingGames, allAnnouncements, sponsors] = await Promise.all([
