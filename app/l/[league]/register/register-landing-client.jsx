@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Footer } from "@/components/footer"
 import { useLeague } from "@/components/use-league"
+import { CURRENT_SEASON, SEASON_TITLE } from "@/lib/season"
 import { SponsorBanner } from "@/components/sponsor-banner"
 import {
   Users,
@@ -107,9 +108,9 @@ export default function RegisterLandingClient({ sponsors, leagueName, wordmark }
             <div className="grid md:grid-cols-3 gap-6 mb-8">
               <div className="bg-[#121212] border border-white/10 p-6">
                 <Calendar className="h-8 w-8 text-neon mb-3" />
-                <h3 className="font-bold text-white mb-2">Spring 2026 Season</h3>
+                <h3 className="font-bold text-white mb-2">{SEASON_TITLE}</h3>
                 <p className="text-sm text-white/40">
-                  Season runs from March through June 2026. Games are played on weekends.
+                  Season tips off {CURRENT_SEASON.startDate}. Games are played on weekends.
                 </p>
               </div>
               <div className="bg-[#121212] border border-white/10 p-6">

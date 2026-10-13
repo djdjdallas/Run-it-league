@@ -11,6 +11,7 @@ import { ArrowRight, Calendar, Trophy, TrendingUp } from "lucide-react"
 import { getTeams, getRecentGames, getUpcomingGames, getAnnouncements, getSponsors } from "@/lib/queries"
 import { resolveLeague, leaguePrefix, leagueWordmark, leaguePattern } from "@/lib/leagues"
 import { calculateWinPercentage, formatDate, formatTime } from "@/lib/utils"
+import { CURRENT_SEASON, SEASON_TITLE } from "@/lib/season"
 
 export async function generateMetadata({ params }) {
   const { league: slug } = await params
@@ -44,7 +45,7 @@ export default async function HomePage({ params }) {
   // is hello in the languages of the communities the league serves.
   const marqueeItems = [
     ...greetingsFor(league),
-    "SPRING 2026 SEASON",
+    `${SEASON_TITLE.toUpperCase()} STARTS ${CURRENT_SEASON.startShort.toUpperCase()}`,
     ...upcomingGames.slice(0, 3).map(
       (g) => `${g.home_team?.name || "TBD"} vs ${g.away_team?.name || "TBD"} — ${formatDate(g.game_date)}`
     ),
@@ -105,7 +106,7 @@ export default async function HomePage({ params }) {
             />
 
             <p className="text-white/40 text-sm uppercase tracking-[0.3em] mb-6">
-              Spring 2026 Season
+              {SEASON_TITLE} &mdash; Starts {CURRENT_SEASON.startDate}
             </p>
 
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-white max-w-3xl mx-auto mb-6">
@@ -336,7 +337,7 @@ export default async function HomePage({ params }) {
               READY TO <span className="text-neon neon-glow">RUN IT</span>?
             </h2>
             <p className="text-white/40 text-sm uppercase tracking-[0.2em] mb-10">
-              Spring 2026 Season &mdash; Limited team slots available
+              {SEASON_TITLE} starts {CURRENT_SEASON.startShort} &mdash; Limited team slots available
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link
