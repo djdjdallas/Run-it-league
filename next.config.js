@@ -22,6 +22,7 @@ const LEAGUE_SECTIONS = [
   'gallery',
   'events',
   'games',
+  'sponsors',
 ]
 
 const nextConfig = {

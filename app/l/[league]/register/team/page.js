@@ -16,6 +16,7 @@ import {
   Mail,
 } from "lucide-react"
 import { useLeague } from "@/components/use-league"
+import { CURRENT_SEASON, SEASON_TITLE } from "@/lib/season"
 
 const teamRegistrationFee = 500.00
 
@@ -492,8 +493,8 @@ export default function TeamRegisterPage() {
                   <div className="flex items-start gap-3">
                     <Calendar className="h-5 w-5 text-neon mt-0.5" />
                     <div>
-                      <p className="font-medium text-white">Spring 2026 Season</p>
-                      <p className="text-sm text-white/40">May - June 2026</p>
+                      <p className="font-medium text-white">{SEASON_TITLE}</p>
+                      <p className="text-sm text-white/40">Starts {CURRENT_SEASON.startDate}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

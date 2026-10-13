@@ -74,6 +74,11 @@ export function Footer({ wordmark }) {
                   Register
                 </Link>
               </li>
+              <li>
+                <Link href={lp("/sponsors")} className="text-white/50 hover:text-neon transition-colors">
+                  Sponsor / Invest
+                </Link>
+              </li>
             </ul>
           </div>
 

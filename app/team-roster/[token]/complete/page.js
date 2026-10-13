@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Footer } from "@/components/footer"
+import { SEASON_TITLE } from "@/lib/season"
 import {
   CheckCircle2,
   Users,
@@ -125,7 +126,7 @@ export default function RosterCompletePage() {
               <span className="text-white/40">Status:</span>
               <span className="text-neon font-medium">Active</span>
               <span className="text-white/40">Season:</span>
-              <span className="text-white/60">Spring 2026</span>
+              <span className="text-white/60">{SEASON_TITLE}</span>
             </div>
           </div>
 

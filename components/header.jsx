@@ -16,6 +16,7 @@ const navLinks = [
   { href: "/live", label: "Live" },
   { href: "/gallery", label: "Gallery" },
   { href: "/events", label: "Events" },
+  { href: "/sponsors", label: "Sponsors" },
 ]
 
 // Switching leagues keeps you in the same section but drops any entity id --
