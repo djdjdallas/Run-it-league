@@ -5,6 +5,7 @@ import { getAdminLeague } from "@/lib/leagues"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
+  const league = await getAdminLeague()
   const game = await getGameById(league.id, id)
   if (!game) return { title: "Game Not Found" }
 

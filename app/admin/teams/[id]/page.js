@@ -17,6 +17,7 @@ import { getAdminLeague } from "@/lib/leagues"
 
 export async function generateMetadata({ params }) {
   const { id } = await params
+  const league = await getAdminLeague()
   const team = await getTeamById(league.id, id)
   return {
     title: `${team?.name || "Team"} - Admin - Run It League`,
