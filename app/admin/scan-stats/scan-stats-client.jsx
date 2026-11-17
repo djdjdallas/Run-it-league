@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { finalizeGameFromStats } from "@/lib/game-finalize"
+import { prepareScanPayload, requestScan } from "@/lib/scan-upload"
 
 // A match only counts as verified when the extracted NAME lines up with a
 // roster name. A jersey-number hit alone can't verify identity (numbers
@@ -161,21 +162,11 @@ export default function ScanStatsClient({ games }) {
       const homeRoster = homeRes.data || []
       const awayRoster = awayRes.data || []
 
-      // 2. Base64 encode image
-      const reader = new FileReader()
-      const base64 = await new Promise((resolve) => {
-        reader.onload = () => resolve(reader.result.split(",")[1])
-        reader.readAsDataURL(file)
-      })
+      // 2. Resize/compress so the body fits Vercel's 4.5MB limit
+      const payload = await prepareScanPayload(file)
 
-      // 3. Call scan API
-      const res = await fetch("/api/scan-stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, mediaType: file.type }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to scan")
+      // 3. Call scan API (handles non-JSON platform errors like 413)
+      const data = await requestScan(payload)
 
       // 4. Upload image to storage (best-effort)
       let imageUrl = null

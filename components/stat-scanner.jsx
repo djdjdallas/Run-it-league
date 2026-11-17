@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Upload, X, Loader2, Camera, FileImage, FileText } from "lucide-react"
+import { prepareScanPayload, requestScan } from "@/lib/scan-upload"
 
 export function StatScanner({ onStatsExtracted }) {
   const [file, setFile] = useState(null)
@@ -97,31 +98,9 @@ export function StatScanner({ onStatsExtracted }) {
     setError(null)
 
     try {
-      const reader = new FileReader()
-      const base64Promise = new Promise((resolve) => {
-        reader.onload = () => {
-          const base64 = reader.result.split(",")[1]
-          resolve(base64)
-        }
-      })
-      reader.readAsDataURL(file)
-      const base64Image = await base64Promise
-
-      const response = await fetch("/api/scan-stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: base64Image,
-          mediaType: file.type,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to scan stats")
-      }
-
-      const data = await response.json()
+      // Resize/compress so the body fits Vercel's 4.5MB limit, then scan.
+      const payload = await prepareScanPayload(file)
+      const data = await requestScan(payload)
 
       // Upload the scanned image to storage so it can be attached to the game.
       // Non-blocking: if upload fails, we still return the stats.
